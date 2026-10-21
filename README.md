@@ -5,6 +5,7 @@
 | 路徑 | 工具 | 備註 |
 |---|---|---|
 | `question-variant/` | 題目變形工坊 | 純前端 |
+| `exam-to-word/` | 考卷轉 Word | 純前端，Markdown＋LaTeX 轉 docx |
 | `roll-call/` | 點名表產生器 | 純前端 |
 | `igp/` | IGP 產生器 | 純前端，資料只在瀏覽器處理 |
 | `escape-room/` | 數位密室逃脫（學生端／`teacher.html` 教師監看台） | 後端為 Google Apps Script，不在本 repo |
