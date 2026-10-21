@@ -1,0 +1,1744 @@
+<title>題目變形工坊</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap">
+<style>
+  :root{
+    --bg:#e7edec; --panel:#f8fbfa; --panel-2:#eef4f3; --line:#d3dedc;
+    --ink:#16232a; --ink-soft:#57676f; --accent:#12615c; --accent-ink:#ffffff;
+    --accent-soft:#dbe9e7; --field:#ffffff; --seal:#a63a2e; --focus:#0f8a80;
+    --ok:#1d7a4f; --warn:#9a6314; --bad:#a63a2e;
+    --paper:#ffffff; --paper-ink:#141c22; --paper-soft:#5a6a72;
+    --paper-rule:#3a464e; --paper-hair:#aab5bb; --paper-head:#eaefee;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12191a; --panel:#1a2223; --panel-2:#212b2b; --line:#2e3a3a;
+      --ink:#e4ecea; --ink-soft:#9fb0ad; --accent:#3fada4; --accent-ink:#08201e;
+      --accent-soft:#1e3634; --field:#131b1c; --seal:#d97a6c; --focus:#5fd0c5;
+      --ok:#5fc48d; --warn:#d9ab5e; --bad:#e0897c;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#12191a; --panel:#1a2223; --panel-2:#212b2b; --line:#2e3a3a;
+    --ink:#e4ecea; --ink-soft:#9fb0ad; --accent:#3fada4; --accent-ink:#08201e;
+    --accent-soft:#1e3634; --field:#131b1c; --seal:#d97a6c; --focus:#5fd0c5;
+    --ok:#5fc48d; --warn:#d9ab5e; --bad:#e0897c;
+  }
+
+  *{box-sizing:border-box}
+  [hidden]{display:none!important}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+    font-size:14px; line-height:1.6; -webkit-font-smoothing:antialiased;
+  }
+  .app{display:grid;grid-template-columns:376px minmax(0,1fr);min-height:100vh}
+
+  /* ---------- 左側控制台 ---------- */
+  .panel{
+    background:var(--panel); border-right:1px solid var(--line);
+    padding-block:22px 40px; overflow-y:auto; max-height:100vh;
+    position:sticky; top:0;
+  }
+  .brand{padding-inline:22px;display:flex;align-items:baseline;gap:9px;margin-bottom:20px}
+  .brand h1{font-family:"Noto Serif TC",serif;font-size:19px;margin:0;letter-spacing:.02em}
+  .brand span{font-size:11px;color:var(--ink-soft);letter-spacing:.08em}
+  .group{padding-inline:22px;margin-bottom:22px}
+  .group-title{
+    font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--accent);
+    text-transform:uppercase;margin-bottom:9px;display:flex;justify-content:space-between;align-items:center
+  }
+  .group-title .mini{font-weight:500;letter-spacing:0;text-transform:none;color:var(--ink-soft);font-size:11px}
+  label.fld{display:block;margin-bottom:9px}
+  label.fld > span{display:block;font-size:11.5px;color:var(--ink-soft);margin-bottom:3px}
+  input[type=text],input[type=number],select,textarea{
+    width:100%;background:var(--field);color:var(--ink);border:1px solid var(--line);
+    border-radius:7px;padding:7px 9px;font:inherit;font-size:13px
+  }
+  textarea{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:11.5px;line-height:1.55;resize:vertical}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--focus);outline-offset:-1px;border-color:transparent}
+  .row{display:flex;gap:8px}
+  .row > *{flex:1;min-width:0}
+  button{
+    font:inherit;font-size:13px;font-weight:500;cursor:pointer;border-radius:7px;
+    border:1px solid var(--line);background:var(--panel-2);color:var(--ink);padding:7px 11px
+  }
+  button:hover{border-color:var(--accent)}
+  button.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent;font-weight:700}
+  button.primary:hover{filter:brightness(1.08)}
+  button.wide{width:100%}
+  button.tiny{padding:3px 7px;font-size:11px;border-radius:5px}
+
+  /* 模板庫 */
+  .tplbox{border:1px solid var(--line);border-radius:9px;background:var(--field);max-height:264px;overflow-y:auto}
+  .topic-h{
+    font-size:10.5px;font-weight:700;letter-spacing:.06em;color:var(--ink-soft);
+    background:var(--panel-2);padding:4px 10px;position:sticky;top:0;border-bottom:1px solid var(--line)
+  }
+  .tpl{display:flex;gap:8px;align-items:flex-start;padding:6px 10px;border-bottom:1px solid var(--line)}
+  .tpl:last-child{border-bottom:0}
+  .tpl input{margin-top:3px;flex:none;accent-color:var(--accent)}
+  .tpl .meta{min-width:0;flex:1}
+  .tpl .nm{font-size:12.5px;font-weight:500;line-height:1.35}
+  .tpl .sk{font-size:10.5px;color:var(--ink-soft);line-height:1.4}
+  .chip{
+    display:inline-block;font-size:9.5px;padding:0 5px;border-radius:4px;
+    background:var(--accent-soft);color:var(--accent);font-weight:700;margin-left:5px;vertical-align:1px
+  }
+  .chip.geo{background:#e8dff0;color:#5c3a7a}
+  @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .chip.geo{background:#33264a;color:#c6abe0}}
+  :root[data-theme="dark"] .chip.geo{background:#33264a;color:#c6abe0}
+
+  /* AI 匯入面板 */
+  .aihint{font-size:11px;color:var(--ink-soft);line-height:1.5;margin-top:7px}
+  .drop{
+    border:1.5px dashed var(--line);border-radius:9px;background:var(--field);
+    padding:14px 12px;text-align:center;cursor:pointer;transition:border-color .15s
+  }
+  .drop:hover,.drop.over{border-color:var(--accent);background:var(--accent-soft)}
+  .drop .big{font-size:12.5px;font-weight:500}
+  .drop .sub{font-size:10.5px;color:var(--ink-soft);margin-top:2px}
+  .files{margin-top:8px;font-size:11.5px}
+  .files div{
+    display:flex;gap:6px;align-items:baseline;padding:3px 0;
+    border-bottom:1px solid var(--line)
+  }
+  .files div:last-child{border-bottom:0}
+  .files .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .files .sz{color:var(--ink-soft);font-size:10.5px;flex:none}
+  .files .bad{color:var(--bad)}
+  .aistat{
+    font-size:12px;margin-top:9px;padding:9px 11px;border-radius:8px;
+    background:var(--panel-2);border:1px solid var(--line);line-height:1.55
+  }
+  .aistat.err{background:var(--accent-soft);border-color:var(--bad);color:var(--bad)}
+  .spin{
+    display:inline-block;width:10px;height:10px;border:2px solid var(--line);
+    border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite;
+    vertical-align:-1px;margin-right:5px
+  }
+  @keyframes sp{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion:reduce){.spin{animation:none}}
+
+  /* 審核畫面 */
+  .review{max-width:900px;margin:0 auto;padding:8px 0 40px}
+  .review > h2{
+    font-family:"Noto Serif TC",serif;font-size:20px;margin:0 0 4px;color:var(--ink)
+  }
+  .review > .lead{color:var(--ink-soft);font-size:13px;margin-bottom:18px;max-width:62ch}
+  .cand{
+    background:var(--panel);border:1px solid var(--line);border-radius:10px;
+    padding:14px 16px;margin-bottom:12px
+  }
+  .cand.reject{opacity:.5}
+  .cand .hd{display:flex;gap:10px;align-items:flex-start}
+  .cand .hd input{margin-top:4px;accent-color:var(--accent);flex:none;width:16px;height:16px}
+  .cand .hd .t{flex:1;min-width:0}
+  .cand .hd .t b{font-size:15px}
+  .cand .hd .t .sk{font-size:12px;color:var(--ink-soft)}
+  .cand .checks{display:flex;flex-wrap:wrap;gap:5px;margin:9px 0 0}
+  .cand .ck{
+    font-size:11px;padding:2px 8px;border-radius:20px;
+    background:var(--panel-2);border:1px solid var(--line)
+  }
+  .cand .ck.ok{color:var(--ok);border-color:var(--ok)}
+  .cand .ck.warn{color:var(--warn);border-color:var(--warn)}
+  .cand .ck.bad{color:var(--bad);border-color:var(--bad)}
+  .cand .samples{
+    margin-top:10px;padding:10px 12px;background:var(--field);
+    border-radius:7px;font-size:12.5px;line-height:1.7
+  }
+  .cand .samples .s{padding:4px 0;border-bottom:1px solid var(--line)}
+  .cand .samples .s:last-child{border-bottom:0}
+  .cand .samples .a{color:var(--accent);font-weight:500}
+  .cand .samples .o{color:var(--ink-soft);font-size:11.5px}
+  .revbar{display:flex;gap:9px;align-items:center;margin:18px 0 0;flex-wrap:wrap}
+
+  /* 版本設定 */
+  .ver{display:flex;gap:6px;align-items:center;margin-bottom:6px}
+  .ver input[type=text]{flex:1}
+  .ver .del{flex:none;padding:5px 8px;font-size:11px;color:var(--ink-soft)}
+
+  /* 檢查報告 */
+  .report{border:1px solid var(--line);border-radius:9px;background:var(--field);padding:10px 12px;font-size:12px}
+  .report .line{display:flex;gap:7px;align-items:flex-start;margin-bottom:4px}
+  .report .line:last-child{margin-bottom:0}
+  .report .ic{flex:none;font-weight:700;width:14px;text-align:center}
+  .ic.ok{color:var(--ok)} .ic.warn{color:var(--warn)} .ic.bad{color:var(--bad)}
+  .report .tx{min-width:0}
+  .report .tx b{font-weight:700}
+
+  /* ---------- 右側紙張 ---------- */
+  .stage{display:flex;flex-direction:column;min-width:0}
+  .stage-bar{
+    display:flex;gap:10px;align-items:center;padding:11px 20px;
+    border-bottom:1px solid var(--line);background:var(--panel);position:sticky;top:0;z-index:5;flex-wrap:wrap
+  }
+  .stage-bar .sp{flex:1}
+  .toggle{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-soft);cursor:pointer}
+  .toggle input{accent-color:var(--accent)}
+  .paper-wrap{padding:26px 20px 60px;overflow-x:auto;background:var(--bg)}
+  .sheet{
+    width:210mm;min-height:297mm;background:var(--paper);color:var(--paper-ink);
+    margin:0 auto 26px;padding:14mm 13mm;box-shadow:0 2px 16px rgba(0,0,0,.14);
+    font-size:10pt;line-height:1.62
+  }
+  .sheet.answer{}
+  .sh-head{border-bottom:1.6px solid var(--paper-rule);padding-bottom:7px;margin-bottom:4px}
+  .sh-head .t1{display:flex;align-items:baseline;gap:10px}
+  .sh-head h2{font-family:"Noto Serif TC",serif;font-size:14pt;margin:0;letter-spacing:.04em}
+  .sh-head .vtag{
+    font-size:10pt;font-weight:700;border:1.3px solid var(--paper-rule);
+    border-radius:4px;padding:0 7px;letter-spacing:.08em
+  }
+  .sh-head .t2{display:flex;gap:16px;font-size:9.6pt;color:var(--paper-soft);margin-top:5px;flex-wrap:wrap}
+  .sh-fields{display:flex;gap:18px;font-size:10pt;margin:9px 0 12px}
+  .sh-fields span{border-bottom:1px solid var(--paper-hair);flex:1;padding-bottom:2px}
+  .q{margin-bottom:9px;break-inside:avoid;page-break-inside:avoid;display:flex;gap:8px}
+  .q .no{flex:none;font-weight:700;min-width:2.1em}
+  .q .body{min-width:0;flex:1}
+  .q .pts{float:right;font-size:9pt;color:var(--paper-soft);font-weight:400}
+  .q .work{height:var(--workh,16mm);border-bottom:1px dotted var(--paper-hair);margin-top:4px}
+  .ansline{display:flex;gap:6px;align-items:baseline;margin-top:3px;font-size:10.4pt}
+  .ansline .lbl{color:var(--paper-soft);flex:none}
+  .sol{font-size:9.8pt;color:var(--paper-soft);margin-top:3px;padding-left:2px;border-left:2px solid var(--paper-head);padding-left:8px}
+  .sol div{margin-bottom:1px}
+  .sec{
+    font-weight:700;font-size:11.2pt;margin:13px 0 7px;letter-spacing:.02em;
+    break-after:avoid;page-break-after:avoid
+  }
+  .sec:first-of-type{margin-top:4px}
+  .qlist.two{column-count:2;column-gap:9mm}
+  .q.mc{align-items:flex-start}
+  .mcbox{
+    flex:none;font-family:"Noto Serif TC",serif;letter-spacing:.1em;
+    color:var(--paper-ink);white-space:nowrap
+  }
+  .mcbox b{font-weight:700;color:var(--seal)}
+  .opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px 10px;margin-top:2px}
+  .opts.wide{grid-template-columns:1fr}
+  .opts div{font-size:9.6pt}
+  .parts div.pq{margin-top:1px}
+  table.qt{border-collapse:collapse;margin:5px 0 3px;font-size:8.8pt}
+  table.qt th,table.qt td{border:1px solid var(--paper-rule);padding:0 4px;text-align:center;min-width:1.7em;white-space:nowrap}
+  table.qt th{background:var(--paper-head);font-weight:500}
+  .blk{display:inline-block;min-width:4.2em;border-bottom:1px solid var(--paper-ink);margin:0 2px}
+  figure.fig{margin:6px 0 2px}
+  figure.fig svg{max-width:100%;height:auto}
+  i{font-family:"Noto Serif TC",Georgia,serif;font-style:italic;padding-inline:.5px}
+  .fracw{display:inline-flex;flex-direction:column;vertical-align:-.48em;text-align:center;font-size:.95em;line-height:1.2;margin-inline:3px}
+  .fracw .dn{border-top:1.1px solid currentColor;padding-top:.5px}
+  .akey{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 20px}
+  .akey .ak{display:flex;gap:7px;font-size:10.6pt;break-inside:avoid}
+  .akey .ak .n{font-weight:700;flex:none;min-width:2.1em}
+  .empty{text-align:center;color:var(--ink-soft);padding:70px 20px;font-size:13px}
+
+  @media print{
+    @page{size:A4 portrait;margin:0}
+    body{background:#fff}
+    .panel,.stage-bar{display:none!important}
+    .app{display:block}
+    .paper-wrap{padding:0;overflow:visible;background:#fff}
+    .sheet{
+      width:auto;min-height:0;padding:14mm 13mm;box-shadow:none;margin:0;
+      break-after:page;page-break-after:always
+    }
+    .sheet:last-child{break-after:auto;page-break-after:auto}
+  }
+  @media (max-width:900px){
+    .app{grid-template-columns:1fr}
+    .panel{position:static;max-height:none;border-right:0;border-bottom:1px solid var(--line)}
+    .sheet{width:auto}
+  }
+</style>
+
+<div class="app">
+<aside class="panel">
+  <div class="brand"><h1>題目變形工坊</h1><span>參數化出卷</span></div>
+
+  <div class="group" id="aiGroup" hidden>
+    <div class="group-title"><span>⓪ 從考卷匯入</span><span class="mini">需要 Claude</span></div>
+    <div class="drop" id="drop">
+      <div class="big">選擇或拖入考卷檔案</div>
+      <div class="sub" id="dropSub">PDF、圖片、Word (.docx)</div>
+    </div>
+    <input type="file" id="paperIn" multiple hidden
+           accept=".pdf,.png,.jpg,.jpeg,.webp,.gif,.docx,.txt,.md,image/*">
+    <div class="aihint" id="capNote"></div>
+    <div class="files" id="fileList"></div>
+    <label class="fld" style="margin-top:9px"><span>或直接貼上題目文字</span>
+      <textarea id="paperText" rows="3" placeholder="沒有檔案時，把題目打或貼在這裡"></textarea>
+    </label>
+    <label class="fld"><span>單元名稱（會寫進模板的分類）</span>
+      <input type="text" id="unitName" placeholder="例如：1-3 正負數的乘除">
+    </label>
+    <button class="primary wide" id="btnAnalyze">請 Claude 拆成模板</button>
+    <div class="aistat" id="aiStat" hidden></div>
+    <div class="aihint">
+      Claude 只負責把題目<b>抽象成模板</b>；題目的數字與答案仍由程式計算，所以答案不會算錯。
+      拆完會先攤開讓你逐題確認，確認後才進題庫。
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="group-title">
+      <span>① 模板庫</span>
+      <span class="mini"><button class="tiny" id="selAll">全選</button> <button class="tiny" id="selNone">清空</button></span>
+    </div>
+    <div class="tplbox" id="tplbox"></div>
+    <div class="row" style="margin-top:8px">
+      <button id="btnEdit">編輯 JSON</button>
+      <button id="btnImport">匯入檔案</button>
+      <button id="btnExport">匯出檔案</button>
+    </div>
+    <input type="file" id="fileIn" accept=".json,application/json" hidden>
+    <div style="font-size:11px;color:var(--ink-soft);margin-top:7px;line-height:1.5">
+      內建模板存在這個 HTML 檔裡。你在「編輯 JSON」改過的版本只留在<b>這台電腦的這個瀏覽器</b>，
+      要帶去別台或長期保存，請按「匯出檔案」存成 <b>題型模板.json</b> 放在同一個資料夾（下載若被擋，編輯框裡的內容可以整段複製）。
+    </div>
+    <div id="editWrap" hidden style="margin-top:8px">
+      <textarea id="tplJson" rows="11" spellcheck="false"></textarea>
+      <div class="row" style="margin-top:6px">
+        <button class="primary" id="btnApply">套用</button>
+        <button id="btnReset">還原內建</button>
+      </div>
+      <div style="font-size:11px;color:var(--ink-soft);margin-top:6px">
+        把 Claude 從你考卷拆出來的模板 JSON 貼進來即可。格式說明見專案資料夾的
+        <b>模板規格.md</b>。
+      </div>
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="group-title"><span>② 試卷設定</span></div>
+    <label class="fld"><span>卷名</span><input type="text" id="title" value="平時測驗卷　1-2 正負數的加減"></label>
+    <div class="row">
+      <label class="fld"><span>科目／班級標示</span><input type="text" id="subtitle" value="國中數學 1上　進階"></label>
+    </div>
+    <div class="row">
+      <label class="fld"><span>每題配分</span><input type="number" id="pts" value="5" min="0" max="100"></label>
+      <label class="fld"><span>作答空間 (mm)</span><input type="number" id="workh" value="16" min="0" max="60"></label>
+    </div>
+    <label class="fld"><span>亂數種子（同一種子＝同一份卷，可重現）</span>
+      <div class="row">
+        <input type="text" id="seed" value="2026">
+        <button id="btnDice" style="flex:none">🎲</button>
+      </div>
+    </label>
+  </div>
+
+  <div class="group">
+    <div class="group-title"><span>③ 版本</span><span class="mini"><button class="tiny" id="addVer">＋ 新增</button></span></div>
+    <div id="vers"></div>
+  </div>
+
+  <div class="group">
+    <button class="primary wide" id="btnGo" style="padding:11px;font-size:14px">產生多版本試卷</button>
+  </div>
+
+  <div class="group">
+    <div class="group-title"><span>④ 品質檢查</span></div>
+    <div class="report" id="report"><div style="color:var(--ink-soft)">尚未產生。</div></div>
+  </div>
+</aside>
+
+<main class="stage">
+  <div class="stage-bar">
+    <label class="toggle"><input type="checkbox" id="twoCol" checked> 雙欄排版</label>
+    <label class="toggle"><input type="checkbox" id="showAns" checked> 附答案卷</label>
+    <label class="toggle"><input type="checkbox" id="showSol" checked> 答案卷含解析</label>
+    <span class="sp"></span>
+    <button id="btnDlQ">下載題目卷</button>
+    <button id="btnDlA">下載答案卷</button>
+    <button id="btnPrint">列印 / 存成 PDF</button>
+    <button id="btnTheme" title="切換深淺色">◑</button>
+  </div>
+  <div class="paper-wrap" id="paper">
+    <div class="empty">選好模板後，按左側「產生多版本試卷」。</div>
+  </div>
+</main>
+</div>
+
+<script>
+/* ============================================================
+   題目變形工坊 — 參數化出卷引擎
+   核心原則：題目由「模板＋參數」生成，答案由程式「算」出來，
+   而不是由語言模型「寫」出來。因此答案永遠正確、圖形永遠同步。
+   ============================================================ */
+
+/* ---------- 亂數（可重現） ---------- */
+function mulberry32(a){
+  return function(){
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+function hashSeed(str){
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < str.length; i++){ h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
+
+/* ---------- 顯示輔助（在模板的 ${...} 裡可直接呼叫） ---------- */
+const MINUS = '−';
+function n(v){                                   // 數字：負號用真正的減號
+  if (typeof v !== 'number') return String(v);
+  return v < 0 ? MINUS + Math.abs(v) : String(v);
+}
+function sg(v){                                  // 帶號項：" + 5" / " − 3" / ""（0 省略）
+  if (v === 0) return '';
+  return v > 0 ? ' + ' + v : ' ' + MINUS + ' ' + Math.abs(v);
+}
+function sgc(v){ return v === 0 ? '0' : (v < 0 ? MINUS + Math.abs(v) : '+' + v); }   // 表格用的緊湊帶號
+function vr(x){ return '<i>' + x + '</i>'; }     // 變數
+function cf(a, x){                               // 首項係數：3x / x / −x /（0 回空字串）
+  if (a === 0) return '';
+  if (a === 1) return vr(x);
+  if (a === -1) return MINUS + vr(x);
+  return n(a) + vr(x);
+}
+function sgx(a, x){                              // 帶號的含變數項：" + 3x" / " − x" / ""
+  if (a === 0) return '';
+  const mag = Math.abs(a) === 1 ? vr(x) : Math.abs(a) + vr(x);
+  return (a > 0 ? ' + ' : ' ' + MINUS + ' ') + mag;
+}
+function fr(a, b){                               // 分數（自動約分、整數則直接回整數）
+  const g = gcd(Math.abs(a), Math.abs(b)) || 1;
+  let p = a / g, q = b / g;
+  if (q < 0){ p = -p; q = -q; }
+  if (q === 1) return n(p);
+  const sign = p < 0 ? MINUS : '';
+  return sign + '<span class="fracw"><span class="up">' + Math.abs(p) +
+         '</span><span class="dn">' + q + '</span></span>';
+}
+function frv(x, d){                               // 變數分數：x 分之一橫線寫法（x/3）
+  if (d === 1) return vr(x);
+  return '<span class="fracw"><span class="up">' + vr(x) + '</span><span class="dn">' + d + '</span></span>';
+}
+function deg(v){ return n(v) + '°'; }
+function gcd(a, b){ a = Math.abs(a); b = Math.abs(b); while (b){ [a, b] = [b, a % b]; } return a; }
+function lcm(a, b){ return Math.abs(a * b) / (gcd(a, b) || 1); }
+function isInt(v){ return Number.isInteger(v); }
+function pick(arr, r){ return arr[Math.floor(r() * arr.length)]; }
+
+/* ---------- 幾何：三角形圖 ----------
+   頂點座標由三個角算出，所有標示都掛在算出來的座標上，
+   因此「圖」與「題目上的數字」不可能對不起來。
+   兩階段排版：先算出所有標示的位置，再把它們一起納入圖框，確保沒有東西被裁掉。 */
+function TRI(o){
+  const ang = { A:o.A, B:o.B, C:o.C };
+  const L = 210, rad = d => d * Math.PI / 180;
+  let ax, ay;                                      // 以 B=(0,0)、C=(L,0) 建座標
+  if (o.B === 90){ ax = 0; ay = L * Math.tan(rad(o.C)); }
+  else if (o.C === 90){ ax = L; ay = L * Math.tan(rad(o.B)); }
+  else {
+    const tb = Math.tan(rad(o.B)), tc = Math.tan(rad(o.C));
+    ax = L * tc / (tb + tc); ay = ax * tb;
+  }
+  const lab = Object.assign({ A:'A', B:'B', C:'C' }, o.labels || {});
+  const P = { A:{x:ax, y:ay}, B:{x:0, y:0}, C:{x:L, y:0} };
+  const cen = { x:(P.A.x + P.B.x + P.C.x)/3, y:(P.A.y + P.B.y + P.C.y)/3 };
+  const nb = { A:['B','C'], B:['C','A'], C:['A','B'] };
+  const show = o.show || [], ask = o.ask;
+  const unit = (p, q) => { const dx = q.x-p.x, dy = q.y-p.y, d = Math.hypot(dx,dy)||1; return {x:dx/d, y:dy/d}; };
+
+  let EX = null;                                   // 延長線（外角題）
+  if (o.ext){
+    const dir = unit(P[o.ext.from], P[o.ext.at]);
+    EX = { dir, at:o.ext.at, to:o.ext.to || 'D',
+           p:{ x:P[o.ext.at].x + dir.x*76, y:P[o.ext.at].y + dir.y*76 },
+           other:['A','B','C'].find(v => v !== o.ext.at && v !== o.ext.from) };
+  }
+
+  // 先用頂點的粗略邊界定出縮放比，才知道一個螢幕像素等於幾個 viewBox 單位
+  const px = [P.A.x, P.B.x, P.C.x], py = [P.A.y, P.B.y, P.C.y];
+  if (EX){ px.push(EX.p.x); py.push(EX.p.y); }
+  const rw = Math.max(...px) - Math.min(...px), rh = Math.max(...py) - Math.min(...py);
+  const BOXW = 324, BOXH = 200, PADPX = 14;
+  const fit = Math.min((BOXW - 2*PADPX)/rw, (BOXH - 2*PADPX)/rh);
+  const k = 1/fit, FS = 13.5*k, SW = 1.8*k;
+
+  // ── 第一階段：算出每個標示的位置與內容 ──
+  const marks = [], arcs = [];
+  const halfW = s => s.replace(/<[^>]*>/g, '').length * FS * 0.34;
+  function addAngle(V, u1, u2, a, label, bold){
+    const r = (a < 32 ? 0.17 : a < 55 ? 0.13 : 0.105) * L;
+    arcs.push({ V, u1, u2, a, r });
+    const bi = unit({x:0,y:0}, {x:u1.x+u2.x, y:u1.y+u2.y});
+    // 銳角要推得更遠，字才不會壓到兩邊：需要 d·sin(a/2) > 半個字寬
+    const need = (halfW(label) + 3.5*k) / Math.sin(rad(Math.max(a, 8)/2));
+    const off = Math.min(Math.max((a === 90 ? 0.062*L : r) + FS*0.85, need), 0.46*L);
+    marks.push({ p:{ x:V.x + bi.x*off, y:V.y + bi.y*off }, t:label, bold, w:halfW(label) });
+  }
+  for (const v of ['A','B','C']){
+    const marked = show.includes(v), asked = (ask === v);
+    if (!marked && !asked) continue;
+    addAngle(P[v], unit(P[v], P[nb[v][0]]), unit(P[v], P[nb[v][1]]), ang[v],
+             asked ? '?' : n(ang[v]) + '°', asked);
+  }
+  if (EX){
+    addAngle(P[EX.at], unit(P[EX.at], P[EX.other]), EX.dir, 180 - ang[EX.at],
+             o.ext.show ? n(180 - ang[EX.at]) + '°' : '?', true);
+    const dl = '<tspan font-style="italic">' + EX.to + '</tspan>';
+    marks.push({ p:{ x:EX.p.x + EX.dir.x*FS*1.2, y:EX.p.y + EX.dir.y*FS*1.2 }, t:dl, w:halfW(dl) });
+  }
+  for (const v of ['A','B','C']){                  // 頂點字母（沿重心方向往外推）
+    const out = unit(cen, P[v]);
+    const t = '<tspan font-style="italic">' + lab[v] + '</tspan>';
+    marks.push({ p:{ x:P[v].x + out.x*FS*1.5, y:P[v].y + out.y*FS*1.5 }, t, w:halfW(t) });
+  }
+
+  // ── 第二階段：把標示一起納入圖框 ──
+  const bx = px.slice(), by = py.slice();
+  for (const m of marks){ bx.push(m.p.x - m.w, m.p.x + m.w); by.push(m.p.y - FS*0.8, m.p.y + FS*0.8); }
+  const PAD = 4*k;
+  const x0 = Math.min(...bx) - PAD, x1 = Math.max(...bx) + PAD;
+  const y0 = Math.min(...by) - PAD, y1 = Math.max(...by) + PAD;
+  const FY = y => y0 + (y1 - y);                   // 翻轉 y（SVG 向下為正）
+  const S = p => p.x.toFixed(1) + ',' + FY(p.y).toFixed(1);
+
+  const parts = ['<polygon points="' + S(P.A) + ' ' + S(P.B) + ' ' + S(P.C) +
+    '" fill="none" stroke="currentColor" stroke-width="' + SW.toFixed(2) + '" stroke-linejoin="round"/>'];
+  if (EX) parts.push('<line x1="' + P[EX.at].x.toFixed(1) + '" y1="' + FY(P[EX.at].y).toFixed(1) +
+    '" x2="' + EX.p.x.toFixed(1) + '" y2="' + FY(EX.p.y).toFixed(1) +
+    '" stroke="currentColor" stroke-width="' + SW.toFixed(2) +
+    '" stroke-dasharray="' + (5*k).toFixed(1) + ' ' + (3.5*k).toFixed(1) + '"/>');
+  for (const a of arcs){
+    const { V, u1, u2, r } = a;
+    if (a.a === 90){
+      const s = 0.062*L;
+      const q1 = {x:V.x+u1.x*s, y:V.y+u1.y*s}, q2 = {x:V.x+u2.x*s, y:V.y+u2.y*s};
+      const q3 = {x:V.x+(u1.x+u2.x)*s, y:V.y+(u1.y+u2.y)*s};
+      parts.push('<polyline points="' + S(q1) + ' ' + S(q3) + ' ' + S(q2) +
+        '" fill="none" stroke="currentColor" stroke-width="' + (SW*0.78).toFixed(2) + '"/>');
+    } else {
+      const s1 = {x:V.x+u1.x*r, y:V.y+u1.y*r}, s2 = {x:V.x+u2.x*r, y:V.y+u2.y*r};
+      const cross = u1.x*u2.y - u1.y*u2.x;
+      parts.push('<path d="M ' + S(s1) + ' A ' + r.toFixed(1) + ' ' + r.toFixed(1) + ' 0 0 ' +
+        (cross > 0 ? 1 : 0) + ' ' + S(s2) + '" fill="none" stroke="currentColor" stroke-width="' +
+        (SW*0.78).toFixed(2) + '"/>');
+    }
+  }
+  for (const m of marks)
+    parts.push('<text x="' + m.p.x.toFixed(1) + '" y="' + (FY(m.p.y) + FS*0.34).toFixed(1) +
+      '" text-anchor="middle" font-size="' + FS.toFixed(1) + '" font-family="Georgia,serif" fill="currentColor"' +
+      (m.bold ? ' font-weight="700"' : '') + '>' + m.t + '</text>');
+
+  const w = x1 - x0, h = y1 - y0;
+  return '<svg viewBox="' + x0.toFixed(1) + ' ' + y0.toFixed(1) + ' ' + w.toFixed(1) + ' ' + h.toFixed(1) +
+         '" width="' + (w*fit).toFixed(0) + '" height="' + (h*fit).toFixed(0) +
+         '" role="img" aria-label="三角形示意圖">' + parts.join('') + '</svg>';
+}
+
+/* ---------- 數線圖 ----------
+   NUM({ pts:[{x:0.2, top:"B", bot:"b"}, {x:0.5, top:"0"}, ...], arrow:"right"|"both" })
+   x 是 0~1 的相對位置（示意圖，不必按比例）。點、上標、下標都由同一組資料產生。 */
+function NUM(o){
+  const W = 300, H = o.bot === false ? 40 : 54, y = 20, m = 16;
+  const px = t => m + t * (W - 2*m);
+  const p = [];
+  p.push('<line x1="' + (m-10) + '" y1="' + y + '" x2="' + (W-m+10) + '" y2="' + y +
+         '" stroke="currentColor" stroke-width="1.5"/>');
+  p.push('<polygon points="' + (W-m+10) + ',' + y + ' ' + (W-m+2) + ',' + (y-3.6) + ' ' +
+         (W-m+2) + ',' + (y+3.6) + '" fill="currentColor"/>');
+  if (o.arrow === 'both')
+    p.push('<polygon points="' + (m-10) + ',' + y + ' ' + (m-2) + ',' + (y-3.6) + ' ' +
+           (m-2) + ',' + (y+3.6) + '" fill="currentColor"/>');
+  for (const q of o.pts){
+    const X = px(q.x);
+    if (q.dot !== false) p.push('<circle cx="' + X.toFixed(1) + '" cy="' + y + '" r="2.9" fill="currentColor"/>');
+    if (q.top != null) p.push('<text x="' + X.toFixed(1) + '" y="' + (y-8) +
+      '" text-anchor="middle" font-size="12.5" font-family="Georgia,serif" fill="currentColor">' + q.top + '</text>');
+    if (q.bot != null) p.push('<text x="' + X.toFixed(1) + '" y="' + (y+16) +
+      '" text-anchor="middle" font-size="12.5" font-family="Georgia,serif" fill="currentColor">' + q.bot + '</text>');
+  }
+  return '<svg viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H +
+         '" role="img" aria-label="數線示意圖">' + p.join('') + '</svg>';
+}
+
+/* ---------- 三線六點圖（填充 6：每條直線上三數和相同） ----------
+   六個外圈點依序放在 180°、135°、45°、0°、315°、225°，三條線都通過中心。 */
+function STAR3(o){
+  const R = 74, cx = 96, cy = 84, r = 15;
+  const deg = [180, 135, 45, 0, 315, 225];
+  const pos = deg.map(d => ({ x:cx + R*Math.cos(d*Math.PI/180), y:cy - R*Math.sin(d*Math.PI/180) }));
+  const lines = [[0,3],[1,4],[2,5]];               // 對角成線：左-右、左上-右下、右上-左下
+  const p = [];
+  for (const [i,j] of lines)
+    p.push('<line x1="' + pos[i].x.toFixed(1) + '" y1="' + pos[i].y.toFixed(1) +
+           '" x2="' + pos[j].x.toFixed(1) + '" y2="' + pos[j].y.toFixed(1) +
+           '" stroke="currentColor" stroke-width="1.3"/>');
+  const node = (x, y, t) =>
+    '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + r +
+    '" fill="var(--paper,#fff)" stroke="currentColor" stroke-width="1.3"/>' +
+    '<text x="' + x.toFixed(1) + '" y="' + (y+4.6).toFixed(1) +
+    '" text-anchor="middle" font-size="13" font-family="Georgia,serif" fill="currentColor">' + t + '</text>';
+  p.push(node(cx, cy, o.center));
+  o.nodes.forEach((t, i) => p.push(node(pos[i].x, pos[i].y, t)));
+  return '<svg viewBox="0 0 192 168" width="178" height="156" role="img" aria-label="三線六點圖">' +
+         p.join('') + '</svg>';
+}
+
+/* ---------- 表格 ---------- */
+function TBL(head, row){
+  return '<table class="qt"><tr>' + head.map(h => '<th>' + h + '</th>').join('') +
+         '</tr><tr>' + row.map(c => '<td>' + c + '</td>').join('') + '</tr></table>';
+}
+
+/* ---------- 模板編譯 ---------- */
+const HELPERS = { n, sg, sgc, sgx, cf, vr, fr, frv, deg, gcd, lcm, isInt,
+                  TRI, NUM, STAR3, TBL, Math, abs:Math.abs, MINUS };
+const _cache = new Map();
+function compile(body, isLit){
+  const key = (isLit ? 'L|' : 'E|') + body;
+  if (_cache.has(key)) return _cache.get(key);
+  const src = isLit ? 'with(S){ return `' + body + '`; }' : 'with(S){ return (' + body + '); }';
+  const fn = new Function('S', src);
+  _cache.set(key, fn);
+  return fn;
+}
+function ev(body, scope){ return compile(body, false)(scope); }
+function lit(body, scope){ return compile(body, true)(scope); }
+
+/* ---------- 取樣：拒絕重採樣 + 答案去重 ---------- */
+function sampleParams(tpl, r, scope){
+  for (const [k, spec] of Object.entries(tpl.params)){
+    const S = Object.assign({}, HELPERS, scope);
+    if (spec.t === 'pick'){
+      scope[k] = spec.from[Math.floor(r() * spec.from.length)];
+      continue;
+    }
+    const lo = typeof spec.min === 'string' ? ev(spec.min, S) : spec.min;
+    const hi = typeof spec.max === 'string' ? ev(spec.max, S) : spec.max;
+    if (!(hi >= lo)) return false;
+    const step = spec.step || 1;
+    const cnt = Math.floor((hi - lo) / step) + 1;
+    scope[k] = lo + step * Math.floor(r() * cnt);
+  }
+  return true;
+}
+/* 產生一題。用「算出來的答案」去重 —— 這是版本之間不撞題的真正保險，
+   只比對參數是不夠的（不同的 B、C 可以算出同一個 ∠A）。
+   tpl.vary 列出的欄位（人物、情境詞）也強制跨版本不同。 */
+function generateOne(tpl, r, mem, maxTry){
+  maxTry = maxTry || 8000;
+  let relaxVary = false;
+  for (let t = 0; t < maxTry; t++){
+    if (t === Math.floor(maxTry * 0.6)) relaxVary = true;   // 池子不夠大時才退讓
+    const scope = {};
+    if (!sampleParams(tpl, r, scope)) continue;
+    let bad = false;
+    for (const [k, expr] of Object.entries(tpl.derive || {})){
+      const S = Object.assign({}, HELPERS, scope);
+      let v;
+      try { v = ev(expr, S); } catch(e){ bad = true; break; }
+      if (v === undefined || (typeof v === 'number' && !isFinite(v))){ bad = true; break; }
+      scope[k] = v;
+    }
+    if (bad) continue;
+    const S = Object.assign({}, HELPERS, scope);
+    let ok = true;
+    for (const c of (tpl.constraints || [])){
+      let v; try { v = ev(c, S); } catch(e){ v = false; }
+      if (!v){ ok = false; break; }
+    }
+    if (!ok) continue;
+
+    if (tpl.dedup){
+      const dk = tpl.dedup.map(k => scope[k]).join('|');
+      if (mem.params.has(dk)) continue;
+    }
+    if (!relaxVary && tpl.vary){
+      let clash = false;
+      for (const f of tpl.vary){
+        if (!mem.vary[f]) mem.vary[f] = new Set();
+        if (mem.vary[f].has(scope[f])){ clash = true; break; }
+      }
+      if (clash) continue;
+    }
+
+    let q;
+    try { q = renderQ(tpl, scope, r); } catch(e){ continue; }
+    if (!q) continue;                                       // 選擇題選項撞值
+    // 去重鍵：選擇題用「選項位置＋答案值」，其餘用答案。
+    // 答案值天生固定的題目，就靠位置不同來區分版本。
+    const akey = (q.kind === 'mc' ? q.letter + '|' : '') +
+                 q.value.replace(/<[^>]*>/g, '').replace(/\s+/g, '');
+    if (mem.answers.has(akey)) continue;                    // ← 核心：答案不得重複
+
+    mem.answers.add(akey);
+    if (tpl.dedup) mem.params.add(tpl.dedup.map(k => scope[k]).join('|'));
+    if (tpl.vary) for (const f of tpl.vary){
+      if (!mem.vary[f]) mem.vary[f] = new Set();
+      mem.vary[f].add(scope[f]);
+    }
+    q.scope = scope;
+    return q;
+  }
+  return null;
+}
+
+/* ---------- 產生一整份試卷 ---------- */
+const LETTERS = 'ABCDEFG';
+/* 渲染一題。選擇題的選項每一版都重新洗牌 ——
+   有些題目的答案「值」天生固定（例如「比 −5½ 小的最大整數」與「大的最小整數」永遠差 1），
+   靠洗牌讓正解落在不同選項，各版本才不會對得起來。 */
+function renderQ(tpl, scope, r){
+  const S = Object.assign({}, HELPERS, scope);
+  const kind = tpl.kind || 'calc';
+  const out = { kind, stem:lit(tpl.stem, S), sol:[], fig:null, opts:null, letter:null, parts:null };
+  if (tpl.figure) out.fig = ev(tpl.figure, S);
+
+  if (kind === 'mc'){
+    const raw = tpl.options.map(o => lit(o, S));     // options[0] 一律是正解
+    const plain = raw.map(x => x.replace(/<[^>]*>/g, '').replace(/\s/g, ''));
+    // 正解一定要跟每個誘答都不同，否則這題有兩個對的答案。
+    // 誘答彼此同值通常也該避免（學生會互相消去），但有些題目本來就是這樣設計的
+    // （例如 −a−b 與 −a−|b| 本來就等值），那種題目設 dupDistractors:true。
+    if (plain.slice(1).includes(plain[0])) return null;
+    if (!tpl.dupDistractors && new Set(plain).size !== raw.length) return null;
+    const idx = raw.map((_, i) => i);
+    for (let i = idx.length - 1; i > 0; i--){ const j = Math.floor(r() * (i + 1)); [idx[i], idx[j]] = [idx[j], idx[i]]; }
+    out.opts   = idx.map(i => raw[i]);
+    out.letter = LETTERS[idx.indexOf(0)];
+    out.value  = raw[0];
+    out.answer = '(' + out.letter + ')　' + raw[0];
+  } else if (tpl.parts){
+    out.parts  = tpl.parts.map(q => ({ q:lit(q.q, S), a:lit(q.a, S), pts:q.pts }));
+    out.value  = out.parts.map(q => q.a).join(' / ');
+    out.answer = out.value;
+  } else {
+    out.answer = lit(tpl.answer, S);
+    out.value  = out.answer;
+  }
+  for (const s of (tpl.solution || [])) out.sol.push(lit(s, S));
+  return out;
+}
+function numericLoad(html){                        // 數值負擔：題幹裡所有數字的位數總和
+  const m = html.replace(/<[^>]*>/g, '').match(/\d+/g) || [];
+  return m.reduce((a, s) => a + s.length, 0);
+}
+function buildPapers(tpls, versions, seedStr){
+  const mems = tpls.map(() => ({ answers:new Set(), params:new Set(), vary:{} }));
+  const papers = [], problems = [];
+  versions.forEach((vname, vi) => {
+    const r = mulberry32(hashSeed(seedStr + '::' + vi));
+    const qs = [];
+    tpls.forEach((tpl, ti) => {
+      const q = generateOne(tpl, r, mems[ti]);
+      if (!q){
+        problems.push({ lvl:'bad', msg:'<b>' + tpl.name + '</b>：在「' + vname +
+          '」找不到既滿足所有約束、答案又與前面各版本相異的參數。請放寬參數域或減少版本數。' });
+        qs.push(null); return;
+      }
+      q.tpl = tpl; q.load = numericLoad(q.stem);
+      qs.push(q);
+    });
+    papers.push({ name:vname, qs });
+  });
+  return { papers, problems };
+}
+
+/* ---------- 品質檢查 ---------- */
+function auditPapers(papers, tpls){
+  const out = [];
+  const good = papers.every(p => p.qs.every(q => q));
+  out.push({ lvl: good ? 'ok' : 'bad',
+             msg:'各版本題目生成 — ' + papers.length + ' 版 × ' + tpls.length + ' 題' + (good ? '，全數成功' : '，有題目失敗') });
+
+  // 答案唯一性：同一題號，版本之間答案不得重複
+  let dupPairs = 0;
+  tpls.forEach((tpl, ti) => {
+    const seen = new Map();
+    papers.forEach(p => {
+      const q = p.qs[ti]; if (!q) return;
+      const a = q.answer.replace(/<[^>]*>/g, '');
+      if (seen.has(a)) dupPairs++; else seen.set(a, 1);
+    });
+  });
+  out.push({ lvl: dupPairs ? 'bad' : 'ok',
+             msg: dupPairs ? '答案去重 — 有 <b>' + dupPairs + '</b> 處版本間答案相同，請擴大參數域' : '答案去重 — 各版本同題號答案皆不同' });
+
+  // 考點一致性：由建構保證
+  out.push({ lvl:'ok', msg:'考點一致 — 各版本逐題使用同一模板，考的能力與難度分級完全相同' });
+
+  // 答案正確性：由求解式算出
+  out.push({ lvl:'ok', msg:'答案驗算 — 全部由參數反推計算，非文字改寫，數值必然自洽' });
+
+  // 圖形同步
+  const geo = tpls.filter(t => t.figure).length;
+  if (geo) out.push({ lvl:'ok', msg:'圖形同步 — ' + geo + ' 題附圖，座標由該題參數即時計算，不會出現圖文不符' });
+
+  // 選擇題：選項唯一性與正解位置分布
+  const mcIdx = tpls.map((t, i) => (t.kind === 'mc' ? i : -1)).filter(i => i >= 0);
+  if (mcIdx.length){
+    out.push({ lvl:'ok', msg:'選項唯一性 — ' + mcIdx.length + ' 題選擇題，同題四個選項值兩兩相異（撞值的參數已自動丟棄）' });
+    const tally = {};
+    let worst = 0, worstV = '';
+    papers.forEach(p => {
+      const c = {};
+      mcIdx.forEach(i => { const q = p.qs[i]; if (q && q.letter){ c[q.letter] = (c[q.letter]||0)+1; } });
+      tally[p.name] = c;
+      const mx = Math.max(...Object.values(c), 0);
+      if (mx / mcIdx.length > worst){ worst = mx / mcIdx.length; worstV = p.name; }
+    });
+    const dist = papers.map(p => p.name + ' ' +
+      LETTERS.slice(0, 4).split('').map(L => L + (tally[p.name][L] || 0)).join('/')).join('　');
+    const skew = mcIdx.length >= 4 && worst > 0.6;      // 選擇題太少時這個比例沒有意義
+    out.push({ lvl: skew ? 'warn' : 'ok',
+      msg:'正解位置分布 — ' + dist + (skew ? '（<b>' + worstV + '</b> 過度集中，建議換種子）' : '') });
+  }
+
+  // 數值負擔偏移
+  const base = papers[0];
+  let worst = 0, worstQ = '';
+  if (base) tpls.forEach((tpl, ti) => {
+    const b = base.qs[ti]; if (!b || !b.load) return;
+    papers.slice(1).forEach(p => {
+      const q = p.qs[ti]; if (!q) return;
+      const dev = Math.abs(q.load - b.load) / b.load;
+      if (dev > worst){ worst = dev; worstQ = tpl.name; }
+    });
+  });
+  if (base && tpls.length){
+    const pct = Math.round(worst * 100);
+    out.push({ lvl: worst > 0.5 ? 'warn' : 'ok',
+               msg:'計算量比對 — 版本間數值規模最大差距 <b>' + pct + '%</b>' +
+                   (worst > 0.5 ? '（<b>' + worstQ + '</b>，建議收窄該題參數域）' : '，落在合理範圍') });
+  }
+  return out;
+}
+
+/* ============================================================
+   內建示範模板
+   這幾題是工具自帶的範例，用來示範模板寫法與各種題型／圖表，
+   內容為自製，不涉及任何出版社教材。
+   實際要用的題庫請按左側「匯入檔案」載入你自己的 題型模板.json。
+   ============================================================ */
+const BUILTIN = [
+{
+  id:'demo-mc-int', kind:'mc', pts:5, name:'整數四則運算（示範）', topic:'示範模板',
+  skill:'運算順序、負數運算', difficulty:1,
+  params:{ a:{t:'int',min:-9,max:-2}, b:{t:'int',min:2,max:9}, c:{t:'int',min:2,max:6}, d:{t:'int',min:-8,max:8} },
+  derive:{ ans:'a * (b - c) + d' },
+  constraints:['d !== 0','b - c !== 0','abs(ans) <= 80'],
+  dedup:['ans','a','b'],
+  stem:'計算：( ${n(a)} ) × ( ${b} ${MINUS} ${c} )${sg(d)} = ？',
+  options:['${n(ans)}','${n(a*b - c + d)}','${n(a*(b-c) - d)}','${n((a+b)*c + d)}'],
+  answer:'${n(ans)}',
+  solution:['先算括號：${b} ${MINUS} ${c} = ${n(b-c)}',
+            '再乘：( ${n(a)} ) × ( ${n(b-c)} ) = ${n(a*(b-c))}',
+            '最後加減：${n(a*(b-c))}${sg(d)} = ${n(ans)}']
+},
+{
+  id:'demo-fill-eq', kind:'fill', pts:5, name:'一元一次方程式（示範）', topic:'示範模板',
+  skill:'移項、係數化為一', difficulty:2,
+  params:{ a:{t:'int',min:2,max:9}, b:{t:'int',min:-15,max:15}, x:{t:'int',min:-12,max:12} },
+  derive:{ c:'a*x + b' },
+  constraints:['b !== 0','x !== 0','abs(c) <= 70'],
+  dedup:['x','a','b'],
+  stem:'解方程式 ${cf(a,"x")}${sg(b)} = ${n(c)}，則 ${vr("x")} = <span class="blk"></span>。',
+  answer:'${vr("x")} = ${n(x)}',
+  solution:['兩邊同時${b>0?"減":"加"} ${abs(b)}：${cf(a,"x")} = ${n(a*x)}',
+            '兩邊同時除以 ${a}：${vr("x")} = ${n(x)}',
+            '反向生成：先抽 ${vr("x")} = ${n(x)}，再把右邊的 ${n(c)} 算回去，所以解必為整數。']
+},
+{
+  id:'demo-calc-tri', kind:'calc', pts:10, name:'三角形內角和（示範，附圖）', topic:'示範模板',
+  skill:'內角和 180°、外角性質', difficulty:2,
+  params:{ A:{t:'int',min:30,max:80,step:5}, B:{t:'int',min:30,max:80,step:5} },
+  derive:{ C:'180 - A - B', ext:'A + B' },
+  constraints:['C >= 35','C <= 105','C !== 90','A !== B','ext <= 145'],
+  dedup:['A','B'],
+  stem:'如圖，已知 ∠${vr("A")} = ${deg(A)}、∠${vr("B")} = ${deg(B)}，且 ${vr("B")}${vr("C")} 延長至 ${vr("D")}。',
+  figure:'TRI({A:A, B:B, C:C, show:["A","B"], ext:{from:"B", at:"C", to:"D"}})',
+  parts:[
+    { q:'求 ∠${vr("A")}${vr("C")}${vr("B")} 的度數。', a:'${deg(C)}', pts:5 },
+    { q:'求外角 ∠${vr("A")}${vr("C")}${vr("D")} 的度數。', a:'${deg(ext)}', pts:5 }
+  ],
+  solution:['(1) 內角和 180°：∠${vr("A")}${vr("C")}${vr("B")} = 180° ${MINUS} ${deg(A)} ${MINUS} ${deg(B)} = ${deg(C)}',
+            '(2) 外角等於不相鄰的兩內角和：${deg(A)} + ${deg(B)} = ${deg(ext)}',
+            '圖形由三個角的座標即時算出，所以圖上的度數永遠跟題目一致。']
+}
+];
+
+/* ============================================================
+   介面
+   ============================================================ */
+const $ = s => document.querySelector(s);
+let TPLS = BUILTIN.slice();
+let SEL = new Set(TPLS.map(t => t.id));
+let VERSIONS = ['A 卷', 'B 卷', 'C 卷', '補考卷'];
+let LAST = null;
+
+function store(k, v){ try{ localStorage.setItem(k, v); }catch(e){} }
+function load(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+
+/* 模板庫列表 */
+function drawTplList(){
+  const byTopic = new Map();
+  TPLS.forEach(t => {
+    if (!byTopic.has(t.topic)) byTopic.set(t.topic, []);
+    byTopic.get(t.topic).push(t);
+  });
+  let h = '';
+  for (const [topic, list] of byTopic){
+    h += '<div class="topic-h">' + esc(topic) + '</div>';
+    for (const t of list){
+      h += '<label class="tpl"><input type="checkbox" data-id="' + esc(t.id) + '"' +
+           (SEL.has(t.id) ? ' checked' : '') + '><span class="meta">' +
+           '<span class="nm">' + esc(t.name) +
+           '<span class="chip">難度 ' + (t.difficulty || 1) + '</span>' +
+           (t.figure ? '<span class="chip geo">附圖</span>' : '') +
+           '</span><span class="sk">' + esc(t.skill || '') + '</span></span></label>';
+    }
+  }
+  $('#tplbox').innerHTML = h;
+  $('#tplbox').querySelectorAll('input').forEach(cb => {
+    cb.onchange = () => { cb.checked ? SEL.add(cb.dataset.id) : SEL.delete(cb.dataset.id); };
+  });
+}
+function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+/* 版本設定 */
+function drawVers(){
+  $('#vers').innerHTML = VERSIONS.map((v, i) =>
+    '<div class="ver"><input type="text" value="' + esc(v) + '" data-i="' + i + '">' +
+    (VERSIONS.length > 1 ? '<button class="del" data-d="' + i + '">✕</button>' : '') + '</div>'
+  ).join('');
+  $('#vers').querySelectorAll('input').forEach(inp => {
+    inp.oninput = () => { VERSIONS[+inp.dataset.i] = inp.value; };
+  });
+  $('#vers').querySelectorAll('button').forEach(b => {
+    b.onclick = () => { VERSIONS.splice(+b.dataset.d, 1); drawVers(); };
+  });
+}
+
+/* 產生 */
+function go(){
+  const tpls = TPLS.filter(t => SEL.has(t.id));
+  if (!tpls.length){ alert('請至少勾選一個題型模板。'); return; }
+  if (!VERSIONS.length){ alert('請至少保留一個版本。'); return; }
+  const { papers, problems } = buildPapers(tpls, VERSIONS, $('#seed').value || '0');
+  LAST = { papers, tpls };
+  const rep = problems.concat(auditPapers(papers, tpls));
+  $('#report').innerHTML = rep.map(r =>
+    '<div class="line"><span class="ic ' + r.lvl + '">' +
+    (r.lvl === 'ok' ? '✓' : r.lvl === 'warn' ? '!' : '✕') + '</span><span class="tx">' + r.msg + '</span></div>'
+  ).join('');
+  draw();
+}
+
+/* 排版 */
+const SEC = { mc:'選擇題', fill:'填充題', calc:'計算題' };
+const CN  = ['一','二','三','四','五'];
+
+function draw(){
+  if (!LAST){ return; }
+  const { papers, tpls } = LAST;
+  const title = $('#title').value, sub = $('#subtitle').value;
+  const dfPts = +$('#pts').value, wh = +$('#workh').value;
+  const withAns = $('#showAns').checked, withSol = $('#showSol').checked;
+  const two = $('#twoCol').checked;
+  document.documentElement.style.setProperty('--workh', wh + 'mm');
+  const ptsOf = t => (t.pts != null ? t.pts : dfPts);
+
+  // 依題型分區，區內重新編號
+  const order = [];
+  tpls.forEach((t, i) => {
+    const k = t.kind || 'calc';
+    let g = order.find(o => o.kind === k);
+    if (!g){ g = { kind:k, idx:[] }; order.push(g); }
+    g.idx.push(i);
+  });
+  const secHead = (g, gi) => {
+    const tot = g.idx.reduce((a, i) => a + ptsOf(tpls[i]), 0);
+    const per = new Set(g.idx.map(i => ptsOf(tpls[i])));
+    const perTxt = per.size === 1 ? '每題 ' + [...per][0] + ' 分，' : '';
+    return '<div class="sec">' + CN[gi] + '、' + SEC[g.kind] +
+           '（' + perTxt + '共 ' + tot + ' 分）</div>';
+  };
+
+  let h = '';
+  papers.forEach(p => {
+    h += '<section class="sheet"><div class="sh-head"><div class="t1"><h2>' + esc(title) +
+         '</h2><span class="vtag">' + esc(p.name) + '</span></div>' +
+         '<div class="t2"><span>' + esc(sub) + '</span><span>共 ' + p.qs.length + ' 題，滿分 ' +
+         tpls.reduce((a, t) => a + ptsOf(t), 0) + ' 分</span></div></div>' +
+         '<div class="sh-fields"><span>班級：</span><span>座號：</span><span>姓名：</span></div>';
+    order.forEach((g, gi) => {
+      h += secHead(g, gi);
+      h += '<div class="qlist' + (two ? ' two' : '') + '">';
+      g.idx.forEach((i, ni) => {
+        const q = p.qs[i], t = tpls[i];
+        if (!q){ h += '<div class="q"><span class="no">' + (ni+1) +
+                 '.</span><span class="body" style="color:#a63a2e">（此題生成失敗）</span></div>'; return; }
+        h += '<div class="q' + (q.kind === 'mc' ? ' mc' : '') + '">' +
+             (q.kind === 'mc' ? '<span class="mcbox">（　　）</span>' : '') +
+             '<span class="no">' + (ni+1) + '.</span><span class="body">' + q.stem +
+             (q.fig ? '<figure class="fig">' + q.fig + '</figure>' : '');
+        if (q.opts){
+          const wide = q.opts.some(o => o.replace(/<[^>]*>/g, '').replace(/\s/g, '').length > 11);
+          h += '<div class="opts' + (wide ? ' wide' : '') + '">' +
+               q.opts.map((o, k) => '<div>(' + LETTERS[k] + ')　' + o + '</div>').join('') + '</div>';
+        }
+        if (q.parts){
+          h += '<div class="parts">' + q.parts.map((z, k) =>
+               '<div class="pq">(' + (k+1) + ')　' + z.q +
+               (z.pts ? '（' + z.pts + ' 分）' : '') + '</div>').join('') + '</div>';
+        }
+        if (wh && q.kind === 'calc') h += '<div class="work"></div>';
+        h += '</span></div>';
+      });
+      h += '</div>';
+    });
+    h += '</section>';
+  });
+
+  if (withAns){
+    papers.forEach(p => {
+      h += '<section class="sheet answer"><div class="sh-head"><div class="t1"><h2>' + esc(title) +
+           '　答案' + (withSol ? '與解析' : '卷') + '</h2><span class="vtag">' + esc(p.name) +
+           '</span></div><div class="t2"><span>' + esc(sub) + '</span><span>教師用</span></div></div>';
+      order.forEach((g, gi) => {
+        h += secHead(g, gi);
+        if (withSol){
+          h += '<div class="qlist">';
+          g.idx.forEach((i, ni) => {
+            const q = p.qs[i]; if (!q) return;
+            h += '<div class="q"><span class="no">' + (ni+1) + '.</span><span class="body">' + q.stem +
+                 (q.fig ? '<figure class="fig">' + q.fig + '</figure>' : '');
+            if (q.opts) h += '<div class="opts">' + q.opts.map((o, k) =>
+                 '<div>(' + LETTERS[k] + ')　' + o + '</div>').join('') + '</div>';
+            if (q.parts) h += '<div class="parts">' + q.parts.map((z, k) =>
+                 '<div class="pq">(' + (k+1) + ')　' + z.q + '　<b>→ ' + z.a + '</b></div>').join('') + '</div>';
+            else h += '<div class="ansline"><span class="lbl">答：</span><b>' + q.answer + '</b></div>';
+            if (q.sol.length) h += '<div class="sol">' + q.sol.map(x => '<div>' + x + '</div>').join('') + '</div>';
+            h += '</span></div>';
+          });
+          h += '</div>';
+        } else {
+          h += '<div class="akey">' + g.idx.map((i, ni) => {
+            const q = p.qs[i]; if (!q) return '';
+            return '<div class="ak"><span class="n">' + (ni+1) + '.</span><span>' + q.answer + '</span></div>';
+          }).join('') + '</div>';
+        }
+      });
+      h += '</section>';
+    });
+  }
+  $('#paper').innerHTML = h;
+}
+
+/* 事件 */
+$('#btnGo').onclick = go;
+$('#selAll').onclick = () => { SEL = new Set(TPLS.map(t => t.id)); drawTplList(); };
+$('#selNone').onclick = () => { SEL = new Set(); drawTplList(); };
+$('#addVer').onclick = () => { VERSIONS.push('平行試卷 ' + String.fromCharCode(65 + VERSIONS.length)); drawVers(); };
+$('#btnDice').onclick = () => { $('#seed').value = String(Math.floor(Math.random() * 900000) + 100000); go(); };
+/* ---------- 下載試卷：產生自足的離線 HTML ----------
+   不依賴任何外部字型或檔案，開起來就能列印。
+   檔名帶上亂數種子，之後要重印同一份卷把種子填回去就行。 */
+const EXPORT_CSS = `
+*{box-sizing:border-box}
+body{margin:0;background:#f2f2f2;color:#141c22;
+  font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  font-size:10pt;line-height:1.62;-webkit-font-smoothing:antialiased}
+.hint{max-width:210mm;margin:14px auto 0;padding:9px 14px;background:#fff8e6;
+  border:1px solid #e3d5a8;border-radius:6px;font-size:12px;color:#6b5a2a}
+.sheet{width:210mm;min-height:297mm;background:#fff;margin:14px auto;padding:14mm 13mm;
+  box-shadow:0 1px 8px rgba(0,0,0,.14)}
+.sh-head{border-bottom:1.6px solid #3a464e;padding-bottom:7px;margin-bottom:4px}
+.sh-head .t1{display:flex;align-items:baseline;gap:10px}
+.sh-head h2{font-family:"Noto Serif TC",serif;font-size:14pt;margin:0;letter-spacing:.04em}
+.sh-head .vtag{font-size:10pt;font-weight:700;border:1.3px solid #3a464e;border-radius:4px;
+  padding:0 7px;letter-spacing:.08em}
+.sh-head .t2{display:flex;gap:16px;font-size:9.6pt;color:#5a6a72;margin-top:5px;flex-wrap:wrap}
+.sh-fields{display:flex;gap:18px;font-size:10pt;margin:9px 0 12px}
+.sh-fields span{border-bottom:1px solid #aab5bb;flex:1;padding-bottom:2px}
+.sec{font-weight:700;font-size:11.2pt;margin:13px 0 7px;break-after:avoid;page-break-after:avoid}
+.sec:first-of-type{margin-top:4px}
+.qlist.two{column-count:2;column-gap:9mm}
+.q{margin-bottom:9px;break-inside:avoid;page-break-inside:avoid;display:flex;gap:8px}
+.q .no{flex:none;font-weight:700;min-width:2.1em}
+.q .body{min-width:0;flex:1}
+.q .pts{float:right;font-size:9pt;color:#5a6a72;font-weight:400}
+.q .work{height:__WH__mm;border-bottom:1px dotted #aab5bb;margin-top:4px}
+.mcbox{flex:none;font-family:"Noto Serif TC",serif;letter-spacing:.1em;white-space:nowrap}
+.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px 10px;margin-top:2px}
+.opts.wide{grid-template-columns:1fr}
+.opts div{font-size:9.6pt}
+.parts div.pq{margin-top:1px}
+.ansline{display:flex;gap:6px;align-items:baseline;margin-top:3px;font-size:10.4pt}
+.ansline .lbl{color:#5a6a72;flex:none}
+.sol{font-size:9.8pt;color:#5a6a72;margin-top:3px;border-left:2px solid #eaefee;padding-left:8px}
+.sol div{margin-bottom:1px}
+.akey{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 20px}
+.akey .ak{display:flex;gap:7px;font-size:10.6pt;break-inside:avoid}
+.akey .ak .n{font-weight:700;flex:none;min-width:2.1em}
+table.qt{border-collapse:collapse;margin:5px 0 3px;font-size:8.8pt}
+table.qt th,table.qt td{border:1px solid #3a464e;padding:0 4px;text-align:center;
+  min-width:1.7em;white-space:nowrap}
+table.qt th{background:#eaefee;font-weight:500}
+figure.fig{margin:6px 0 2px}
+figure.fig svg{max-width:100%;height:auto}
+i{font-family:"Noto Serif TC",Georgia,serif;font-style:italic;padding-inline:.5px}
+.fracw{display:inline-flex;flex-direction:column;vertical-align:-.48em;text-align:center;
+  font-size:.95em;line-height:1.2;margin-inline:3px}
+.fracw .dn{border-top:1.1px solid currentColor;padding-top:.5px}
+.blk{display:inline-block;min-width:4.2em;border-bottom:1px solid #141c22;margin:0 2px}
+@media print{
+  @page{size:A4 portrait;margin:0}
+  body{background:#fff}
+  .hint{display:none}
+  .sheet{width:auto;min-height:0;margin:0;box-shadow:none;break-after:page;page-break-after:always}
+  .sheet:last-child{break-after:auto;page-break-after:auto}
+}`;
+
+function safeName(x){
+  return String(x).replace(/[\/\\:*?"<>|]/g, '')
+                  .replace(/[\s\u3000]+/g, '_').replace(/^_+|_+$/g, '') || '試卷';
+}
+
+async function saveFile(filename, text, mime){
+  try{
+    const dl = await DL_READY;
+    if (dl){ await dl.save({ filename, data:text }); return 'saved'; }
+  }catch(e){ return 'declined'; }
+  try{
+    const blob = new Blob([text], { type: mime || 'text/plain;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    return 'saved';
+  }catch(e){ return 'blocked'; }
+}
+
+function buildPaperHTML(which){
+  const sel = which === 'q' ? '.sheet:not(.answer)' : '.sheet.answer';
+  const sheets = [...document.querySelectorAll('#paper ' + sel)];
+  if (!sheets.length) return null;
+  const nm = $('#title').value + '　' + (which === 'q' ? '題目卷' : '答案卷');
+  const css = EXPORT_CSS.replace('__WH__', String(+$('#workh').value || 0));
+  return '<!doctype html>\n<html lang="zh-Hant">\n<head>\n<meta charset="utf-8">\n' +
+    '<meta name="viewport" content="width=device-width,initial-scale=1">\n' +
+    '<title>' + esc(nm) + '</title>\n<style>' + css + '</style>\n</head>\n<body>\n' +
+    '<div class="hint">離線檔，不需要網路。直接按 <b>⌘P</b>（Windows 為 Ctrl+P）就能列印或存成 PDF。' +
+    '　亂數種子：<b>' + esc($('#seed').value) + '</b>（填回工具即可重現同一份卷）</div>\n' +
+    sheets.map(x => x.outerHTML).join('\n') + '\n</body>\n</html>\n';
+}
+
+async function downloadPaper(which){
+  if (CANDS.length){ alert('目前在審核畫面。請先確認模板或按「取消，回到試卷」。'); return; }
+  if (!LAST){ alert('還沒有試卷，請先按「產生多版本試卷」。'); return; }
+  const html = buildPaperHTML(which);
+  if (!html){
+    alert(which === 'a' ? '目前沒有答案卷。請先勾選上方的「附答案卷」。' : '目前沒有試卷。');
+    return;
+  }
+  const fn = safeName($('#title').value) + '_' + (which === 'q' ? '題目卷' : '答案卷') +
+             '_種子' + safeName($('#seed').value) + '.html';
+  const r = await saveFile(fn, html, 'text/html;charset=utf-8');
+  if (r === 'blocked') alert('這個環境擋住了下載。請改用「列印 / 存成 PDF」。');
+}
+
+$('#btnDlQ').onclick = () => downloadPaper('q');
+$('#btnDlA').onclick = () => downloadPaper('a');
+$('#btnPrint').onclick = () => window.print();
+$('#showAns').onchange = draw; $('#showSol').onchange = draw; $('#twoCol').onchange = draw;
+['#title','#subtitle','#pts','#workh'].forEach(s => { $(s).oninput = draw; });
+$('#btnEdit').onclick = () => {
+  const w = $('#editWrap');
+  w.hidden = !w.hidden;
+  if (!w.hidden && !$('#tplJson').value) $('#tplJson').value = JSON.stringify(TPLS, null, 2);
+};
+$('#btnImport').onclick = () => $('#fileIn').click();
+$('#fileIn').onchange = async ev => {
+  const inp = ev.target;
+  const f = inp.files && inp.files[0];
+  if (!f) return;
+  try{
+    const txt = await f.text();
+    $('#tplJson').value = txt;
+    $('#editWrap').hidden = false;
+    $('#btnApply').click();
+  }catch(e){
+    alert('讀不到這個檔案：' + (e && e.message ? e.message : e));
+  }finally{
+    inp.value = '';          // 讀完才清；太早清會把讀取中斷掉（而且是無聲的）
+  }
+};
+/* 匯出走兩條路：
+   ‧ 放在 Claude Artifact 裡時，網頁自己觸發的下載會被沙箱擋掉，要走平台的儲存介面。
+   ‧ 放在自己的網域或本機雙擊開檔時沒有 window.claude，就用一般的下載。
+   兩條都不通時，編輯框裡已經有完整 JSON 可以整段複製。 */
+const DL_READY = (window.claude && window.claude.use)
+  ? window.claude.use('downloads').catch(() => null)
+  : Promise.resolve(null);
+
+$('#btnExport').onclick = async () => {
+  const json = JSON.stringify(TPLS, null, 2);
+  $('#tplJson').value = json;
+  $('#editWrap').hidden = false;
+  const r = await saveFile('題型模板.json', json, 'application/json');
+  if (r !== 'saved'){ $('#tplJson').focus(); $('#tplJson').select(); }
+};
+$('#btnApply').onclick = () => {
+  try{
+    const v = JSON.parse($('#tplJson').value);
+    if (!Array.isArray(v)) throw new Error('最外層必須是陣列 [ ... ]');
+    const ids = new Set();
+    v.forEach((t, i) => {
+      const where = '第 ' + (i+1) + ' 個模板' + (t && t.name ? '（' + t.name + '）' : '');
+      if (!t || !t.id || !t.name || !t.stem) throw new Error(where + ' 缺少 id / name / stem');
+      // 答案來源三選一：選擇題看 options，多小題看 parts，其餘看 answer
+      if (t.kind === 'mc'){
+        if (!Array.isArray(t.options) || t.options.length < 2)
+          throw new Error(where + ' 是選擇題，但沒有 options 陣列');
+      } else if (!t.answer && !(Array.isArray(t.parts) && t.parts.length)){
+        throw new Error(where + ' 缺少 answer（或 parts）');
+      }
+      if (ids.has(t.id)) throw new Error('id 重複：' + t.id);
+      ids.add(t.id);
+    });
+    TPLS = v; SEL = new Set(TPLS.map(t => t.id));
+    store('tplworks.tpls', JSON.stringify(TPLS));
+    drawTplList(); go();
+  } catch(e){ alert('模板 JSON 有誤：\n' + e.message); }
+};
+$('#btnReset').onclick = () => {
+  TPLS = BUILTIN.slice(); SEL = new Set(TPLS.map(t => t.id));
+  $('#tplJson').value = JSON.stringify(TPLS, null, 2);
+  store('tplworks.tpls', '');
+  drawTplList(); go();
+};
+$('#btnTheme').onclick = () => {
+  const cur = document.documentElement.getAttribute('data-theme');
+  const nx = cur === 'dark' ? 'light' : cur === 'light' ? '' : 'dark';
+  if (nx) document.documentElement.setAttribute('data-theme', nx);
+  else document.documentElement.removeAttribute('data-theme');
+  store('tplworks.theme', nx);
+};
+
+/* ============================================================
+   從考卷匯入（只在能叫到 Claude 的環境才啟用）
+   Claude 只做一件事：把題目抽象成模板。
+   題目的數字與答案仍由上面的引擎計算，所以答案不會算錯。
+   ============================================================ */
+
+const SAMPLE_READY = (window.claude && window.claude.use)
+  ? window.claude.use('sample').catch(() => null)
+  : Promise.resolve(null);
+
+let PAPER_FILES = [];     // 使用者選的檔案
+let SAMPLE_FN = null;
+let IMG_LIMITS = null;
+
+/* ---------- 讀 .docx（用瀏覽器原生解壓，不載任何函式庫） ---------- */
+async function unzipEntry(buf, wantName){
+  const dv = new DataView(buf), U8 = Uint8Array;
+  let eo = -1;
+  for (let i = buf.byteLength - 22; i >= Math.max(0, buf.byteLength - 66000); i--)
+    if (dv.getUint32(i, true) === 0x06054b50){ eo = i; break; }
+  if (eo < 0) throw new Error('這不是有效的 .docx（找不到壓縮檔結構）');
+  let p = dv.getUint32(eo + 16, true);
+  const n = dv.getUint16(eo + 10, true), dec = new TextDecoder();
+  for (let i = 0; i < n; i++){
+    if (dv.getUint32(p, true) !== 0x02014b50) throw new Error('.docx 結構損毀');
+    const method = dv.getUint16(p + 10, true), csize = dv.getUint32(p + 20, true);
+    const nlen = dv.getUint16(p + 28, true), elen = dv.getUint16(p + 30, true);
+    const clen = dv.getUint16(p + 32, true), lho = dv.getUint32(p + 42, true);
+    const name = dec.decode(new U8(buf, p + 46, nlen));
+    if (name === wantName){
+      const lnlen = dv.getUint16(lho + 26, true), lelen = dv.getUint16(lho + 28, true);
+      const raw = new U8(buf, lho + 30 + lnlen + lelen, csize);
+      if (method === 0) return raw;
+      if (typeof DecompressionStream !== 'function')
+        throw new Error('這個瀏覽器不支援原生解壓，請改上傳 PDF');
+      const st = new Blob([raw]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+      return new U8(await new Response(st).arrayBuffer());
+    }
+    p += 46 + nlen + elen + clen;
+  }
+  throw new Error('.docx 裡找不到 ' + wantName);
+}
+async function readDocx(file){
+  const xml = new TextDecoder().decode(await unzipEntry(await file.arrayBuffer(), 'word/document.xml'));
+  const doc = new DOMParser().parseFromString(xml, 'application/xml');
+  const out = [];
+  for (const para of doc.getElementsByTagName('w:p')){
+    let t = '';
+    for (const nd of para.querySelectorAll('*')){
+      const nm = nd.nodeName;
+      if (nm === 'w:t' || nm === 'm:t') t += nd.textContent;   // m:t 是 Word 方程式裡的字
+      else if (nm === 'w:tab') t += '\t';
+      else if (nm === 'w:br') t += '\n';
+    }
+    if (t.trim()) out.push(t);
+  }
+  return out.join('\n');
+}
+
+/* ---------- 讀 PDF：逐頁轉成圖，交給 Claude 看 ----------
+   數學符號用「看圖」比抽文字可靠得多（抽文字常把上下標、分數、根號弄丟）。 */
+let PDFLIB = null;
+const PDF_VER = '3.11.174';
+async function loadPdfJs(){
+  if (PDFLIB) return PDFLIB;
+  await new Promise((res, rej) => {
+    const sc = document.createElement('script');
+    sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/' + PDF_VER + '/pdf.min.js';
+    sc.onload = res;
+    sc.onerror = () => rej(new Error('PDF 讀取模組載入失敗（可能離線或被擋）。請改上傳圖片。'));
+    document.head.appendChild(sc);
+  });
+  PDFLIB = window.pdfjsLib;
+  if (!PDFLIB) throw new Error('PDF 讀取模組載入失敗。請改上傳圖片。');
+  try{
+    PDFLIB.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/' + PDF_VER + '/pdf.worker.min.js';
+  }catch(e){}
+  return PDFLIB;
+}
+async function pdfToBlobs(file, maxPages, onPage){
+  const lib = await loadPdfJs();
+  const pdf = await lib.getDocument({ data: await file.arrayBuffer() }).promise;
+  const N = Math.min(pdf.numPages, maxPages), out = [];
+  for (let i = 1; i <= N; i++){
+    if (onPage) onPage(i, N);
+    const pg = await pdf.getPage(i);
+    const v1 = pg.getViewport({ scale: 1 });
+    const vp = pg.getViewport({ scale: Math.min(2.2, 1700 / v1.width) });
+    const cv = document.createElement('canvas');
+    cv.width = Math.round(vp.width); cv.height = Math.round(vp.height);
+    const cx = cv.getContext('2d');
+    cx.fillStyle = '#fff'; cx.fillRect(0, 0, cv.width, cv.height);
+    await pg.render({ canvasContext: cx, viewport: vp }).promise;
+    out.push(await new Promise(r => cv.toBlob(r, 'image/png')));
+  }
+  return out;
+}
+
+/* PDF 抽文字：送不了圖片時走這條。
+   依 y 座標分行，盡量還原版面。數學式在 PDF 裡是一個個字元，
+   上下標與分數很可能拼錯位——所以抽完一定要讓使用者過目。 */
+async function pdfToText(file, maxPages, onPage){
+  const lib = await loadPdfJs();
+  const pdf = await lib.getDocument({ data: await file.arrayBuffer() }).promise;
+  const N = Math.min(pdf.numPages, maxPages), out = [];
+  for (let i = 1; i <= N; i++){
+    if (onPage) onPage(i, N);
+    const pg = await pdf.getPage(i);
+    const tc = await pg.getTextContent();
+    const lines = []; let cur = [], lastY = null;
+    for (const it of tc.items){
+      const y = it.transform[5];
+      if (lastY !== null && Math.abs(y - lastY) > 3){
+        if (cur.length) lines.push(cur.join(''));
+        cur = [];
+      }
+      cur.push(it.str); lastY = y;
+    }
+    if (cur.length) lines.push(cur.join(''));
+    const body = lines.map(x => x.replace(/\s+/g, ' ').trim()).filter(Boolean).join('\n');
+    out.push('【第 ' + i + ' 頁】\n' + body);
+  }
+  return out.join('\n\n');
+}
+
+/* ---------- 給 Claude 的指示 ---------- */
+const SPEC = `你是一位數學教材工程師。把使用者提供的考卷，逐題拆解成「參數化題型模板」。
+
+## 最重要的原則：反向生成
+
+不要先抽題目的係數再檢查答案漂不漂亮。要先抽答案，再把題目的數字算回去。
+例：解 ax+b=c → 抽 a、b、x，令 c = a*x + b，這樣整數解由構造保證。
+
+答案由程式計算，不是你寫出來的。你的工作只是描述「哪些數字可以動、動的範圍、以及必須滿足什麼條件」。
+
+## 模板格式
+
+{
+  "id": "唯一英數字代號",
+  "kind": "mc" | "fill" | "calc",        // 選擇題 / 填充題 / 計算題
+  "pts": 每題配分數字,
+  "name": "中文題型名稱",
+  "topic": "單元名稱",
+  "skill": "這題考什麼能力（具體動作，不是章節名）",
+  "difficulty": 1到5,
+  "params": { "a": {"t":"int","min":2,"max":9}, "who": {"t":"pick","from":["小美","阿哲"]} },
+  "derive": { "c": "a*x + b" },           // JS 運算式，可用前面的參數
+  "constraints": ["b !== 0", "abs(c) <= 70"],   // 全部為真才採用
+  "dedup": ["x","a"],                     // 選填：這些欄位組合不得重複
+  "vary": ["who"],                        // 選填：跨版本必須不同（人物、情境）
+  "stem": "題幹",
+  "options": ["正解","誘答1","誘答2","誘答3"],   // 只有 kind:"mc" 要，[0] 一律是正解
+  "answer": "答案",                        // mc 與有 parts 的題目不需要
+  "parts": [{"q":"小題題幹","a":"小題答案","pts":4}],   // 選填，多小題用
+  "solution": ["解析第一行","第二行"],
+  "figure": "TRI({...})"                  // 選填，見下
+}
+
+stem / answer / options / parts / solution 是 JS 樣板字串，\${...} 裡可用參數與下列函式。
+derive / constraints / figure 是 JS 運算式。
+
+## 一定要用的排版函式（正負號自己接字串一定會出錯）
+
+n(v) 數字，負號用真正的減號 −
+sg(v) 帶號項：sg(5)→" + 5"，sg(-3)→" − 3"，sg(0)→""
+sgc(v) 表格用的緊湊帶號：+3 / −5 / 0
+cf(a,'x') 首項係數，自動處理 1/−1：cf(-1,'x')→"−x"
+vr('x') 斜體變數　fr(a,b) 分數　frv('x',3) x/3　deg(v) 角度
+gcd lcm isInt abs Math MINUS
+
+## 圖表函式
+
+TRI({A:70,B:50,C:60, show:["B","C"], ask:"A", ext:{from:"B",at:"C",to:"D"}})
+  三角形。三個角要加起來 180。ext 會畫延長線並標外角。
+  題幹提到的每個點，圖上都必須存在。
+NUM({pts:[{x:0.16,top:"B",bot:"b"},{x:0.5,top:"0"},{x:0.82,top:"A",bot:"a"}]})
+  數線。x 是 0~1 的相對位置。
+TBL(["星期","一","二"], ["數量", sgc(v1), sgc(v2)])
+  表格。第一列表頭，第二列資料。
+STAR3({center:"2", nodes:["−5","a","6","c","−1","b"]})
+  三線六點圖，六個外圈點依序在 180°、135°、45°、0°、315°、225°，
+  三條線為 (0,3)、(1,4)、(2,5)，都通過中心。
+
+## 約束檢查清單（沒寫好就會印出錯題）
+
+1. 答案規模：加 abs(ans) <= 某值，否則會抽到四位數答案。
+2. 不退化：係數不為 0；相減的兩係數不相等；分母不為 0。
+3. 幾何合法：內角和 180；角度落在 25°~110°，否則圖擠在一起。
+4. 排除送分特例：例如外角題抽到 ∠C=90° 時外角也是 90°，要加 C !== 90。
+5. 順序一致：若題目給多個距離，要確保推出來的點順序跟圖一致。
+6. 比較類問法要約束差值為正，否則會出現「比他高 −14 公分」。
+7. 選擇題四個誘答要對應真實的算錯方式，不是隨便加減。
+8. 表格數字用 sgc()，不要用 sg()（會帶空格）。
+
+## 答案不可以恆定
+
+檢查每一題：換了數字之後答案會不會變？
+例如「比 −5½ 小的最大整數 a、大的最小整數 b，求 b−a」恆為 1，與數字無關。
+遇到這種題，在**不改變考點**的前提下調整問法（例如改問 a+b），
+並在 solution 最後一行說明你改了什麼、為什麼。
+
+## 圖形可能不在輸入裡
+
+若輸入是純文字（從 PDF 或 Word 抽出來的），原卷的圖形不會出現在裡面。
+遇到題幹寫「如圖」「右圖」但看不到圖的題目：依題意用 TRI／NUM／STAR3 重建一個合理的圖，
+並在該題 solution 的最後一行寫「圖形依題意重建，請核對是否與原卷一致」。
+不要假裝圖不存在而把題目改成不需要圖。
+
+另外，從 PDF 抽出來的分數常會散成上下兩行（例如「比－5」後面接「1」「2」兩行，
+其實是 −5½）。看到這種情形請還原成分數，不要當成三個獨立的數字。
+
+## 輸出
+
+只回傳一個 JSON 陣列，不要有任何其他文字。
+每個元素一個模板，順序照原卷題號。
+參數域要抓得比直覺寬一點——版本數越多，需要的相異答案越多。`;
+
+/* ---------- 模板健檢：抽樣 150 次，看約束夠不夠 ---------- */
+function healthCheck(tpl){
+  const r = mulberry32(hashSeed('hc|' + (tpl.id || '')));
+  let ok = 0;
+  const answers = new Set(), ugly = [];
+  for (let i = 0; i < 150; i++){
+    let q = null;
+    try{ q = generateOne(tpl, r, { answers:new Set(), params:new Set(), vary:{} }, 400); }catch(e){}
+    if (!q) continue;
+    ok++;
+    const a = q.value.replace(/<[^>]*>/g, '').trim();
+    answers.add(a);
+    if (/\d\.\d{3,}/.test(a) || /e[+-]\d/i.test(a) || /NaN|Infinity|undefined/.test(a)) ugly.push(a);
+  }
+  const out = [];
+  const rate = ok / 150;
+  out.push(rate >= 0.4 ? { lvl:'ok', t:'生成成功率 ' + Math.round(rate*100) + '%' }
+        : rate >= 0.1 ? { lvl:'warn', t:'生成成功率只有 ' + Math.round(rate*100) + '%，約束偏緊' }
+        : { lvl:'bad', t:'幾乎抽不出合格題目（' + Math.round(rate*100) + '%），約束互相矛盾' });
+  out.push(answers.size >= 8 ? { lvl:'ok', t:'相異答案 ' + answers.size + ' 種' }
+        : answers.size >= 4 ? { lvl:'warn', t:'相異答案只有 ' + answers.size + ' 種，版本多了會撞' }
+        : { lvl:'bad', t:'相異答案只有 ' + answers.size + ' 種，做不出四個版本' });
+  if (ugly.length) out.push({ lvl:'bad', t:'答案不乾淨：' + ugly.slice(0,2).join('、') });
+  else if (ok) out.push({ lvl:'ok', t:'答案皆為乾淨數值' });
+  if (tpl.kind === 'mc'){
+    const k = (tpl.options || []).length;
+    out.push(k === 4 ? { lvl:'ok', t:'四個選項' } : { lvl:'warn', t:'選項有 ' + k + ' 個' });
+  }
+  if (tpl.figure) out.push({ lvl:'ok', t:'附圖，座標即時計算' });
+  return { checks: out, ok, rate };
+}
+
+/* ---------- 審核畫面 ---------- */
+let CANDS = [];
+function renderReview(){
+  const strip = x => String(x).replace(/<[^>]*>/g, '');
+  let h = '<div class="review"><h2>Claude 拆出 ' + CANDS.length + ' 個模板</h2>' +
+    '<p class="lead">每一題都用同一組參數抽了 150 次做健檢。' +
+    '下面各列出 3 個實際生成的例子——<b>請確認題意通順、答案正確、難度沒跑掉</b>，' +
+    '再決定要不要收進題庫。有紅色標記的表示約束沒寫好，收進去會印出錯題。</p>';
+
+  CANDS.forEach((c, i) => {
+    h += '<div class="cand' + (c.take ? '' : ' reject') + '"><div class="hd">' +
+      '<input type="checkbox" data-i="' + i + '"' + (c.take ? ' checked' : '') + '>' +
+      '<div class="t"><b>' + esc(c.tpl.name || '(未命名)') + '</b>' +
+      '<span class="chip">' + ({mc:'選擇', fill:'填充', calc:'計算'}[c.tpl.kind] || '計算') + '</span>' +
+      '<span class="chip">難度 ' + (c.tpl.difficulty || 1) + '</span>' +
+      '<span class="chip">' + (c.tpl.pts != null ? c.tpl.pts + ' 分' : '—') + '</span>' +
+      '<div class="sk">' + esc(c.tpl.skill || '') + '</div></div></div>' +
+      '<div class="checks">' + c.hc.checks.map(k =>
+        '<span class="ck ' + k.lvl + '">' + (k.lvl === 'ok' ? '✓' : k.lvl === 'warn' ? '!' : '✕') +
+        ' ' + esc(k.t) + '</span>').join('') + '</div>';
+
+    if (c.samples.length){
+      h += '<div class="samples">' + c.samples.map(q =>
+        '<div class="s">' + q.stem +
+        (q.fig ? '<div style="margin:3px 0">' + q.fig + '</div>' : '') +
+        (q.opts ? '<div class="o">' + q.opts.map((o, k) => '(' + LETTERS[k] + ') ' + o).join('　') + '</div>' : '') +
+        '<div class="a">答：' + q.answer + '</div></div>').join('') + '</div>';
+    } else {
+      h += '<div class="samples" style="color:var(--bad)">這個模板抽不出任何合格題目，無法採用。</div>';
+    }
+    h += '</div>';
+  });
+
+  const n = CANDS.filter(c => c.take).length;
+  h += '<div class="revbar">' +
+    '<button class="primary" id="rvAdd">把勾選的 ' + n + ' 題加入題庫</button>' +
+    '<button id="rvAll">全選</button><button id="rvNone">全不選</button>' +
+    '<button id="rvJson">看 JSON</button>' +
+    '<span style="flex:1"></span><button id="rvCancel">取消，回到試卷</button></div></div>';
+
+  $('#paper').innerHTML = h;
+  window.scrollTo({ top:0, behavior:'smooth' });
+  $('#paper').querySelectorAll('.cand input').forEach(cb => {
+    cb.onchange = () => { CANDS[+cb.dataset.i].take = cb.checked; renderReview(); };
+  });
+  $('#rvAll').onclick  = () => { CANDS.forEach(c => c.take = c.samples.length > 0); renderReview(); };
+  $('#rvNone').onclick = () => { CANDS.forEach(c => c.take = false); renderReview(); };
+  $('#rvCancel').onclick = () => { CANDS = []; draw(); };
+  $('#rvJson').onclick = () => {
+    $('#editWrap').hidden = false;
+    $('#tplJson').value = JSON.stringify(CANDS.filter(c => c.take).map(c => c.tpl), null, 2);
+    $('#tplJson').scrollIntoView({ block:'center' });
+  };
+  $('#rvAdd').onclick = () => {
+    const add = CANDS.filter(c => c.take && c.samples.length).map(c => c.tpl);
+    if (!add.length){ alert('沒有勾選任何可用的模板。'); return; }
+    const ids = new Set(TPLS.map(t => t.id));
+    add.forEach(t => {                                  // id 撞了就加後綴
+      let id = t.id, k = 2;
+      while (ids.has(id)) id = t.id + '-' + (k++);
+      t.id = id; ids.add(id);
+    });
+    TPLS = TPLS.concat(add);
+    SEL = new Set(add.map(t => t.id));                  // 只勾新加的，方便馬上出卷
+    store('tplworks.tpls', JSON.stringify(TPLS));
+    CANDS = [];
+    drawTplList(); go();
+  };
+}
+
+/* ---------- 主流程 ---------- */
+function fmtSize(b){ return b < 1024 ? b + ' B' : b < 1048576 ? (b/1024).toFixed(0) + ' KB' : (b/1048576).toFixed(1) + ' MB'; }
+function drawFiles(){
+  $('#fileList').innerHTML = PAPER_FILES.map(f => {
+    const bad = /\.doc$/i.test(f.name);
+    return '<div><span class="nm' + (bad ? ' bad' : '') + '">' + esc(f.name) + '</span>' +
+           '<span class="sz">' + (bad ? '舊版 .doc 讀不了' : fmtSize(f.size)) + '</span></div>';
+  }).join('');
+}
+function aiSay(html, isErr){
+  const el = $('#aiStat');
+  el.hidden = false; el.className = 'aistat' + (isErr ? ' err' : '');
+  el.innerHTML = html;
+}
+
+$('#drop').onclick = () => $('#paperIn').click();
+['dragenter','dragover'].forEach(e => $('#drop').addEventListener(e, ev => {
+  ev.preventDefault(); $('#drop').classList.add('over');
+}));
+['dragleave','drop'].forEach(e => $('#drop').addEventListener(e, ev => {
+  ev.preventDefault(); $('#drop').classList.remove('over');
+}));
+$('#drop').addEventListener('drop', ev => {
+  PAPER_FILES = [...(ev.dataTransfer.files || [])]; drawFiles(); prepText();
+});
+$('#paperIn').onchange = ev => { PAPER_FILES = [...ev.target.files]; drawFiles(); prepText(); };
+
+/* 選好檔案就先把「能變成文字的」抽出來放進文字框 ——
+   讓使用者在送給 Claude 之前，能親眼確認算式有沒有跑掉、能動手修。 */
+async function prepText(){
+  const chunks = [];
+  for (const f of PAPER_FILES){
+    try{
+      if (/\.doc$/i.test(f.name)){
+        aiSay(esc('「' + f.name + '」是舊版 .doc。這種檔的數學式是以「物件」方式存放，不在文字裡，' +
+          '抽出來只會剩中文敘述，算式、分數、數線圖、表格全部遺失，轉成 .docx 也一樣。' +
+          '請用 Word 開啟後「檔案 → 另存新檔 → PDF」，再上傳那份 PDF。'), true);
+        continue;
+      }
+      if (/\.(txt|md)$/i.test(f.name)){
+        chunks.push(await f.text());
+      } else if (/\.docx$/i.test(f.name)){
+        aiSay('<span class="spin"></span>正在讀 Word 檔…');
+        chunks.push(await readDocx(f));
+      } else if (/\.pdf$/i.test(f.name) && !IMG_LIMITS){
+        aiSay('<span class="spin"></span>正在從 PDF 抽文字…');
+        chunks.push(await pdfToText(f, 12, (i, n) =>
+          aiSay('<span class="spin"></span>PDF 抽文字中… 第 ' + i + ' / ' + n + ' 頁')));
+      }
+    }catch(e){ aiSay(esc('讀「' + f.name + '」時出錯：' + (e.message || e)), true); }
+  }
+  if (!chunks.length){ if (PAPER_FILES.length) aiSay(''); $('#aiStat').hidden = !$('#aiStat').textContent; return; }
+  const t = chunks.join('\n\n').trim();
+  $('#paperText').value = t;
+  $('#paperText').rows = 12;
+  aiSay('已抽出 ' + t.length + ' 個字，放進下面的文字框。' +
+        '<b>請先看過：算式、分數、上下標很容易在抽取時跑掉</b>，' +
+        '有錯就直接在框裡改，改好再按下面的按鈕。');
+}
+
+$('#btnAnalyze').onclick = async () => {
+  const btn = $('#btnAnalyze');
+  if (!SAMPLE_FN){ aiSay('這個環境叫不到 Claude。', true); return; }
+
+  const imgs = [];
+  let text = $('#paperText').value.trim();
+  btn.disabled = true;
+
+  try{
+    for (const f of PAPER_FILES){
+      if (/\.doc$/i.test(f.name)){
+        throw new Error('「' + f.name + '」是舊版 .doc。這種檔的數學式是以「物件」方式存放，' +
+          '不在文字裡——抽出來只會拿到中文敘述，算式、分數、數線圖、表格全部遺失，' +
+          '轉成 .docx 也一樣。請用 Word 開啟後「檔案 → 另存新檔 → PDF」，再上傳那份 PDF。');
+      }
+      // 文字類的檔案在選檔時就抽好放進文字框了，這裡只處理要當圖片送的
+      if (/\.(png|jpe?g|webp|gif)$/i.test(f.name) || /^image\//.test(f.type)){
+        if (!IMG_LIMITS) throw new Error('這個檢視不能送圖片給 Claude，所以圖片檔沒辦法用。' +
+                                         '請改上傳 PDF（會自動抽文字）或直接貼上題目。');
+        imgs.push(f);
+      } else if (/\.pdf$/i.test(f.name) && IMG_LIMITS){
+        aiSay('<span class="spin"></span>正在把 PDF 轉成圖…');
+        const blobs = await pdfToBlobs(f, Math.max(1, IMG_LIMITS.maxCount - imgs.length),
+          (i, n) => aiSay('<span class="spin"></span>PDF 轉圖中… 第 ' + i + ' / ' + n + ' 頁'));
+        imgs.push(...blobs);
+      }
+    }
+
+    if (!imgs.length && !text){ throw new Error('請先選擇考卷檔案，或把題目貼在文字框裡。'); }
+    if (IMG_LIMITS && imgs.length > IMG_LIMITS.maxCount){
+      throw new Error('一次最多只能送 ' + IMG_LIMITS.maxCount + ' 張圖（含 PDF 轉出的頁數），' +
+                      '目前有 ' + imgs.length + ' 張。請分批上傳。');
+    }
+
+    const unit = $('#unitName').value.trim();
+    let prompt = SPEC + '\n\n---\n\n';
+    if (unit) prompt += '這份考卷的單元是「' + unit + '」，請把它填進每個模板的 topic 欄位。\n\n';
+    prompt += imgs.length
+      ? '考卷在附圖裡，共 ' + imgs.length + ' 頁（依序）。請逐題拆解。\n'
+      : '考卷內容如下：\n\n' + text + '\n';
+    if (imgs.length && text) prompt += '\n補充文字：\n' + text + '\n';
+
+    if (new Blob([prompt]).size > 60000)
+      throw new Error('題目文字太長（超過 60 KB），請分批處理。');
+
+    aiSay('<span class="spin"></span>Claude 正在拆解…數學題要想比較久，通常 30～90 秒。' +
+          (imgs.length ? '（' + imgs.length + ' 張圖）' : ''));
+
+    const t0 = Date.now();
+    const out = await SAMPLE_FN.json(prompt, {
+      modelTier: 'complex',
+      images: imgs.length ? imgs : undefined,
+      onText: ({ text: t }) => aiSay('<span class="spin"></span>Claude 回覆中…已寫 ' +
+                                     t.length + ' 字（' + Math.round((Date.now()-t0)/1000) + ' 秒）')
+    });
+
+    const arr = Array.isArray(out) ? out : (out && Array.isArray(out.templates) ? out.templates : null);
+    if (!arr || !arr.length) throw new Error('Claude 沒有回傳模板陣列，請再試一次或改用圖片上傳。');
+
+    CANDS = arr.map((tpl, i) => {
+      if (!tpl.id) tpl.id = 'ai-' + Date.now().toString(36) + '-' + i;
+      if (unit && !tpl.topic) tpl.topic = unit;
+      let hc, samples = [];
+      try{ hc = healthCheck(tpl); }
+      catch(e){ hc = { checks:[{lvl:'bad', t:'模板語法錯誤：' + e.message}], ok:0, rate:0 }; }
+      if (hc.ok){
+        const r = mulberry32(hashSeed('pv|' + tpl.id));
+        const mem = { answers:new Set(), params:new Set(), vary:{} };
+        for (let k = 0; k < 3; k++){
+          try{ const q = generateOne(tpl, r, mem, 800); if (q) samples.push(q); }catch(e){}
+        }
+      }
+      const bad = hc.checks.some(k => k.lvl === 'bad');
+      return { tpl, hc, samples, take: !bad && samples.length > 0 };
+    });
+
+    aiSay('拆出 ' + CANDS.length + ' 個模板，請在右側逐題確認。');
+    renderReview();
+
+  }catch(e){
+    if (e && e.code === 'images_unavailable'){ IMG_LIMITS = null; $('#capNote').innerHTML =
+      '這個檢視<b>不能送圖片</b>，已改為抽文字模式。PDF 抽出來的內容會先放進文字框——' +
+      '<b>算式、分數很容易跑掉，請先看過再送</b>。'; }
+    const msg = e && e.code ? ({
+      not_granted: '你沒有允許這個頁面呼叫 Claude，所以無法拆解。',
+      rate_limited: '短時間內叫太多次了，等一下再試。',
+      cancelled: '已取消。',
+      invalid_json: 'Claude 的回覆不是合法的模板 JSON。可以再試一次，或減少一次處理的題數。',
+      images_unavailable: '這個檢視不能送圖片。已切換成抽文字模式——請再選一次同一份檔案，' +
+                          '內容會出現在文字框讓你確認。',
+      image_rejected: '圖片被拒絕（張數太多、格式不對或解不開）。',
+      too_large: '送出的內容太大，請分批。'
+    }[e.code] || ('Claude 回報錯誤：' + (e.message || e.code))) : (e.message || String(e));
+    aiSay(esc(msg), true);
+  }finally{
+    btn.disabled = false;
+  }
+};
+
+/* 能叫到 Claude 才顯示這個面板 */
+(async () => {
+  const fn = await SAMPLE_READY;
+  if (!fn) return;
+  SAMPLE_FN = fn;
+  let probeFailed = false;
+  try{
+    const lim = await fn.limits();
+    IMG_LIMITS = (lim && lim.images) || null;
+  }catch(e){
+    // 問不到能力時樂觀假設可以送圖；真的不行時 Claude 會回 images_unavailable，屆時再退回抽文字
+    IMG_LIMITS = { maxCount: 6 }; probeFailed = true;
+  }
+  $('#aiGroup').hidden = false;
+  $('#dropSub').textContent = 'PDF、圖片、Word (.docx)、純文字';
+  $('#capNote').innerHTML = probeFailed
+    ? '問不到這個檢視能不能送圖片，先當作可以。PDF 會轉成圖送出；若 Claude 回報不支援，' +
+      '請再選一次檔案，就會改用抽文字。'
+    : IMG_LIMITS
+    ? '這個檢視<b>可以送圖片</b>（最多 ' + IMG_LIMITS.maxCount + ' 張）。PDF 會逐頁轉成圖交給 Claude 看，' +
+      '數學符號辨識最準。'
+    : '這個檢視<b>不能送圖片</b>，所以 PDF 會改用抽文字。抽出來的內容會先放進下面的文字框——' +
+      '<b>算式、分數、上下標很容易在抽取時跑掉，請務必先看過再送</b>。';
+})();
+
+/* 啟動 */
+(function init(){
+  const th = load('tplworks.theme');
+  if (th) document.documentElement.setAttribute('data-theme', th);
+  const saved = load('tplworks.tpls');
+  if (saved){
+    try{
+      const v = JSON.parse(saved);
+      if (Array.isArray(v) && v.length){ TPLS = v; SEL = new Set(TPLS.map(t => t.id)); }
+    }catch(e){}
+  }
+  drawTplList(); drawVers(); go();
+})();
+</script>

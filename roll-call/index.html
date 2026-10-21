@@ -1,0 +1,888 @@
+<title>點名表產生器</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap">
+<style>
+  :root{
+    --bg:#e7edec;
+    --panel:#f8fbfa;
+    --panel-2:#eef4f3;
+    --line:#d3dedc;
+    --ink:#16232a;
+    --ink-soft:#57676f;
+    --accent:#12615c;
+    --accent-ink:#ffffff;
+    --accent-soft:#dbe9e7;
+    --field:#ffffff;
+    --seal:#a63a2e;
+    --focus:#0f8a80;
+    /* 紙張永遠是紙張：不隨主題反轉 */
+    --paper:#ffffff;
+    --paper-ink:#141c22;
+    --paper-soft:#5a6a72;
+    --paper-rule:#3a464e;
+    --paper-hair:#aab5bb;
+    --paper-head:#eaefee;
+    --paper-zebra:#f5f8f7;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12191a;
+      --panel:#1a2223;
+      --panel-2:#212b2b;
+      --line:#2e3a3a;
+      --ink:#e4ecea;
+      --ink-soft:#9fb0ad;
+      --accent:#3fada4;
+      --accent-ink:#08201e;
+      --accent-soft:#1e3634;
+      --field:#131b1c;
+      --seal:#d97a6c;
+      --focus:#5fd0c5;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#12191a;
+    --panel:#1a2223;
+    --panel-2:#212b2b;
+    --line:#2e3a3a;
+    --ink:#e4ecea;
+    --ink-soft:#9fb0ad;
+    --accent:#3fada4;
+    --accent-ink:#08201e;
+    --accent-soft:#1e3634;
+    --field:#131b1c;
+    --seal:#d97a6c;
+    --focus:#5fd0c5;
+  }
+
+  *{box-sizing:border-box}
+  [hidden]{display:none!important}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+    font-size:14px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  .app{
+    display:grid;
+    grid-template-columns:352px minmax(0,1fr);
+    gap:0;
+    min-height:100vh;
+  }
+  /* ---------- 左側控制台 ---------- */
+  .panel{
+    background:var(--panel);
+    border-right:1px solid var(--line);
+    padding-block:22px 40px;
+    padding-inline:20px;
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+    max-height:100vh;
+    overflow-y:auto;
+    position:sticky;
+    top:0;
+  }
+  .brand{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
+  .brand h1{
+    font-family:"Noto Serif TC",serif;
+    font-weight:700;
+    font-size:19px;
+    margin:0;
+    letter-spacing:.02em;
+  }
+  .brand span{font-size:11px;color:var(--ink-soft);letter-spacing:.14em}
+  .group{display:flex;flex-direction:column;gap:9px}
+  .group-title{
+    font-size:11px;
+    letter-spacing:.18em;
+    color:var(--ink-soft);
+    font-weight:500;
+    display:flex;align-items:center;gap:8px;
+  }
+  .group-title::after{content:"";flex:1;height:1px;background:var(--line)}
+  label.f{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--ink-soft)}
+  input[type=text],input[type=date],input[type=number],textarea,select{
+    font:inherit;
+    font-size:13px;
+    color:var(--ink);
+    background:var(--field);
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:7px 9px;
+    width:100%;
+  }
+  textarea{resize:vertical;min-height:150px;line-height:1.75}
+  input:focus-visible,textarea:focus-visible,select:focus-visible,button:focus-visible{
+    outline:2px solid var(--focus);
+    outline-offset:1px;
+  }
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+  .seg{display:flex;border:1px solid var(--line);border-radius:5px;overflow:hidden;background:var(--field)}
+  .seg label{flex:1;position:relative}
+  .seg input{position:absolute;opacity:0;pointer-events:none}
+  .seg span{
+    display:block;text-align:center;padding:7px 4px;font-size:12.5px;cursor:pointer;color:var(--ink-soft);
+  }
+  .seg input:checked + span{background:var(--accent);color:var(--accent-ink);font-weight:500}
+  .seg input:focus-visible + span{outline:2px solid var(--focus);outline-offset:-2px}
+  .checks{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px}
+  .checks label{display:flex;align-items:center;gap:6px;font-size:12.5px;cursor:pointer;color:var(--ink)}
+  .checks input{accent-color:var(--accent);width:14px;height:14px;margin:0}
+  .hint{font-size:11.5px;color:var(--ink-soft);line-height:1.55}
+  .hint.warn{color:var(--seal);font-weight:500}
+  .btn{
+    font:inherit;font-size:13px;font-weight:500;
+    border-radius:5px;border:1px solid var(--line);
+    background:var(--panel-2);color:var(--ink);
+    padding:8px 12px;cursor:pointer;
+  }
+  .btn:hover{border-color:var(--accent)}
+  .btn-main{
+    background:var(--accent);color:var(--accent-ink);border-color:var(--accent);
+    font-size:14.5px;font-weight:700;padding:12px;letter-spacing:.06em;width:100%;
+  }
+  .btn-main:hover{filter:brightness(1.08)}
+  .btn-row{display:flex;gap:8px}
+  .btn-row .btn{flex:1}
+  .load-row{display:flex;gap:6px;align-items:stretch}
+  .load-row select,.load-row input{min-width:0;flex:1}
+  .load-row .btn{flex:0 0 auto;padding-inline:11px;font-size:12.5px}
+  .btn-del{color:var(--seal)}
+  .btn-del:hover{border-color:var(--seal)}
+  .saved-flash{color:var(--accent);font-weight:500}
+  .count{
+    font-size:12px;color:var(--ink-soft);
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  .count b{color:var(--accent);font-size:15px;font-variant-numeric:tabular-nums}
+
+  /* ---------- 右側紙張 ---------- */
+  .stage{display:flex;flex-direction:column;min-width:0}
+  .stage-bar{
+    display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+    padding:12px 20px;border-bottom:1px solid var(--line);
+    background:var(--panel);position:sticky;top:0;z-index:5;
+  }
+  .stage-bar .meta{font-size:12px;color:var(--ink-soft);margin-right:auto}
+  .stage-bar .meta b{color:var(--ink);font-variant-numeric:tabular-nums}
+  .zoom{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink-soft)}
+  .zoom input{width:110px;accent-color:var(--accent)}
+  .paper-wrap{padding:26px 20px 60px;overflow-x:auto}
+  .scaler{transform-origin:top left;width:210mm}
+  .sheet{
+    width:210mm;min-height:297mm;
+    background:var(--paper);color:var(--paper-ink);
+    padding:14mm 13mm;
+    box-shadow:0 1px 2px rgba(10,25,30,.16),0 14px 34px rgba(10,25,30,.14);
+    display:flex;flex-direction:column;gap:5mm;
+  }
+  .sheet + .sheet{margin-top:22px}
+
+  .sh-head{text-align:center;display:flex;flex-direction:column;gap:2.5mm}
+  .sh-title{
+    font-family:"Noto Serif TC",serif;font-weight:700;
+    font-size:21pt;letter-spacing:.16em;margin:0;line-height:1.25;
+    text-wrap:balance;
+  }
+  .sh-sub{
+    display:flex;justify-content:center;flex-wrap:wrap;gap:3mm 8mm;
+    font-size:10.5pt;color:var(--paper-soft);
+  }
+  .sh-sub i{font-style:normal;color:var(--paper-ink)}
+  .sh-rule{height:1.6pt;background:var(--paper-rule)}
+
+  .tables{display:flex;gap:5mm;align-items:flex-start}
+  .tables > div{flex:1;min-width:0}
+  table.roll{width:100%;border-collapse:collapse;table-layout:fixed}
+  table.roll th,table.roll td{
+    border:.6pt solid var(--paper-hair);
+    padding:0 2mm;
+    text-align:center;
+    vertical-align:middle;
+  }
+  table.roll thead th{
+    background:var(--paper-head);
+    border-color:var(--paper-rule);
+    font-weight:700;
+    font-size:10.5pt;
+    padding-block:1.6mm;
+    letter-spacing:.05em;
+    white-space:nowrap;
+  }
+  table.roll tbody td{border-color:var(--paper-hair)}
+  table.roll tbody tr td:first-child{border-left-color:var(--paper-rule)}
+  table.roll tbody tr td:last-child{border-right-color:var(--paper-rule)}
+  table.roll tbody tr:last-child td{border-bottom-color:var(--paper-rule)}
+  .c-no{width:14mm;font-variant-numeric:tabular-nums;color:var(--paper-soft)}
+  .c-name{text-align:left;padding-left:3mm;letter-spacing:.08em}
+  .c-note{color:var(--paper-hair)}
+  tr.blank .c-name{color:var(--paper-hair)}
+  .zebra tbody tr:nth-child(even) td{background:var(--paper-zebra)}
+
+  .sh-foot{margin-top:auto;padding-top:4mm;display:flex;flex-direction:column;gap:3.5mm}
+  .tally{display:flex;gap:7mm;flex-wrap:wrap;font-size:11pt}
+  .tally span{display:inline-flex;align-items:flex-end;gap:1.5mm}
+  .tally u{text-decoration:none;border-bottom:.8pt solid var(--paper-rule);min-width:14mm;display:inline-block;text-align:center;font-variant-numeric:tabular-nums}
+  .bx{display:inline-block;width:4.4mm;height:4.4mm;border:.9pt solid var(--paper-rule);background:var(--paper);vertical-align:middle;border-radius:.4mm}
+  .sheet{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .sign-row{display:flex;justify-content:space-between;gap:6mm;font-size:11pt;align-items:flex-end}
+  .sign-row span{display:flex;align-items:flex-end;gap:2mm;flex:1}
+  .sign-row u{text-decoration:none;border-bottom:.8pt solid var(--paper-rule);flex:1;min-height:7mm}
+  .stamp{
+    align-self:flex-end;font-size:8pt;color:var(--paper-soft);letter-spacing:.08em;
+  }
+  .stamp b{color:var(--seal);font-weight:500}
+  .pg{font-size:9pt;color:var(--paper-soft);text-align:right}
+
+  @media (max-width:900px){
+    .app{grid-template-columns:1fr}
+    .panel{position:static;max-height:none;border-right:0;border-bottom:1px solid var(--line)}
+    .paper-wrap{padding-inline:16px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+  @media print{
+    @page{size:A4 portrait;margin:11mm}
+    body{background:#fff}
+    .panel,.stage-bar{display:none!important}
+    .app{display:block}
+    .paper-wrap{padding:0;overflow:visible}
+    .scaler{transform:none!important;width:auto}
+    .sheet{
+      width:auto;min-height:0;padding:0;box-shadow:none;margin:0;
+      break-after:page;page-break-after:always;
+    }
+    .sheet:last-child{break-after:auto;page-break-after:auto}
+    table.roll{break-inside:auto}
+    tr{break-inside:avoid}
+    thead{display:table-header-group}
+  }
+</style>
+
+<div class="app">
+  <aside class="panel">
+    <div class="brand">
+      <h1>點名表產生器</h1><span>A4 直式</span>
+    </div>
+
+    <div class="group">
+      <div class="group-title">名單</div>
+      <textarea id="names" spellcheck="false" aria-label="學生名單" placeholder="70103 王小明&#10;70211 李小華&#10;（五碼學號：前三碼班級、後兩碼座號）&#10;也可寫成「701 03 王小明」"></textarea>
+      <div class="count">
+        <span>每行一位：五碼學號＋姓名（70103 王小明），或「班級 座號 姓名」。可直接從 Excel 貼上</span>
+        <b id="cnt">0</b>
+      </div>
+      <p class="hint" id="parse-note" aria-live="polite"></p>
+      <div class="btn-row">
+        <button class="btn" id="btn-clear" type="button">清空名單</button>
+        <button class="btn" id="btn-sample" type="button">放入範例</button>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="group-title">已存名單</div>
+      <div class="load-row">
+        <select id="preset" data-noauto aria-label="已存名單">
+          <option value="">（尚未儲存任何名單）</option>
+        </select>
+        <button class="btn" id="btn-load" type="button">載入</button>
+        <button class="btn btn-del" id="btn-del" type="button" title="刪除這份名單">刪除</button>
+      </div>
+      <div class="load-row">
+        <input type="text" id="preset-name" data-noauto placeholder="名稱，例如：七資 114-1">
+        <button class="btn" id="btn-save" type="button">儲存</button>
+      </div>
+      <p class="hint" id="list-note">儲存的是「名單＋表頭設定」整組，下次載入就能直接印。資料存在這台電腦的瀏覽器裡；換電腦或清快取前，用下面的備份帶著走。</p>
+      <div class="btn-row">
+        <button class="btn" id="btn-backup" type="button">備份／還原</button>
+      </div>
+      <div id="backup-box" hidden>
+        <textarea id="backup" data-noauto spellcheck="false" aria-label="備份資料" style="min-height:90px;font-size:11px"></textarea>
+        <div class="btn-row" style="margin-top:6px">
+          <button class="btn" id="btn-copy" type="button">複製備份</button>
+          <button class="btn" id="btn-restore" type="button">從上方還原</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="group-title">表頭</div>
+      <label class="f">標題
+        <input type="text" id="title" value="數理資優班上課點名表">
+      </label>
+      <div class="row2">
+        <label class="f">班別／組別
+          <input type="text" id="klass" value="七年級數理資優班">
+        </label>
+        <label class="f">日期
+          <input type="date" id="date">
+        </label>
+      </div>
+      <div class="row2">
+        <label class="f">課程／活動
+          <input type="text" id="event" value="專題研究">
+        </label>
+        <label class="f">地點
+          <input type="text" id="place" value="資優班教室">
+        </label>
+      </div>
+      <label class="f">授課教師
+        <input type="text" id="teacher" value="" placeholder="例如：黃士祐">
+      </label>
+    </div>
+
+    <div class="group">
+      <div class="group-title">勾選欄位</div>
+      <div class="seg" role="radiogroup" aria-label="點名模式">
+        <label><input type="radio" name="mode" value="once" checked><span>單次點名</span></label>
+        <label><input type="radio" name="mode" value="many"><span>多次／多日</span></label>
+      </div>
+      <div class="row2" id="many-opts" hidden>
+        <label class="f">欄數
+          <input type="number" id="cols" value="6" min="1" max="12">
+        </label>
+        <label class="f">欄標題（逗號分隔）
+          <input type="text" id="colnames" placeholder="9/12, 9/19, …">
+        </label>
+      </div>
+      <div class="checks">
+        <label><input type="checkbox" id="opt-no" checked>座號欄</label>
+        <label><input type="checkbox" id="opt-box" checked>畫出勾選框</label>
+        <label><input type="checkbox" id="opt-note" checked>備註欄</label>
+        <label><input type="checkbox" id="opt-tally" checked>人數統計</label>
+        <label><input type="checkbox" id="opt-zebra" checked>隔行底色</label>
+        <label><input type="checkbox" id="opt-stamp">核章欄位</label>
+        <label><input type="checkbox" id="opt-two">左右雙欄</label>
+        <label><input type="checkbox" id="opt-sort">依班級座號排序</label>
+      </div>
+      <div class="row2">
+        <label class="f">列高
+          <select id="rowh">
+            <option value="7">緊湊（7mm）</option>
+            <option value="9" selected>標準（9mm）</option>
+            <option value="11">寬鬆（11mm）</option>
+          </select>
+        </label>
+        <label class="f">補空白列
+          <input type="number" id="blanks" value="0" min="0" max="15">
+        </label>
+      </div>
+    </div>
+
+    <button class="btn-main" id="btn-make" type="button">一鍵產生點名表</button>
+    <button class="btn" id="btn-print" type="button">列印／存成 PDF</button>
+    <p class="hint">設定一改就即時更新。列印時只會印出右邊的表格，左側面板不會出現在紙上。</p>
+  </aside>
+
+  <main class="stage">
+    <div class="stage-bar">
+      <div class="meta"><b id="meta-n">0</b> 人 ‧ 共 <b id="meta-p">1</b> 頁</div>
+      <div class="zoom">
+        <label for="zoom">縮放</label>
+        <input type="range" id="zoom" min="30" max="100" value="60">
+        <span id="zoom-v">60%</span>
+      </div>
+    </div>
+    <div class="paper-wrap">
+      <div class="scaler" id="scaler"><div id="out"></div></div>
+    </div>
+  </main>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  // 舊版範例（只有座號＋姓名）。讀到它時換成新範例，讓新欄位一眼看得到
+  var OLD_SAMPLE = "1 陳冠廷\n2 林昱安\n3 黃詩涵\n4 吳承翰\n5 蔡宜蓁\n6 楊博宇\n7 許雅筑\n8 鄭家豪\n9 洪語彤\n10 王柏叡\n11 李思穎\n12 張哲瑋";
+  var SAMPLE_V2 = "701 03 陳冠廷\n701 11 林昱安\n702 05 黃詩涵\n702 18 吳承翰\n702 24 蔡宜蓁\n703 02 楊博宇\n703 09 許雅筑\n703 15 鄭家豪\n704 07 洪語彤\n704 12 王柏叡\n705 04 李思穎\n705 21 張哲瑋";
+  var SAMPLE = "70103 陳冠廷\n70111 林昱安\n70205 黃詩涵\n70218 吳承翰\n70224 蔡宜蓁\n70302 楊博宇\n70309 許雅筑\n70315 鄭家豪\n70407 洪語彤\n70412 王柏叡\n70504 李思穎\n70521 張哲瑋";
+
+  var $ = function(id){ return document.getElementById(id); };
+  var out = $("out");
+
+  /* ---------- 名單解析 ---------- */
+  // 每行一位學生。接受的寫法：
+  //   70103 王小明      五碼學號（前三碼班級、後兩碼座號）
+  //   701 03 王小明      班級 座號 姓名
+  //   王小明 70103       學號放在後面也行；70103王小明 黏在一起也行
+  // 欄位之間可用空格、Tab、逗號、頓號；全形數字會自動轉成半形。
+  function parseNames(raw){
+    raw = raw.replace(/[​-‍﻿]/g, "")
+             .replace(/[０-９]/g, function(c){ return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); });
+    var lines = raw.split(/\r?\n/).map(function(s){ return s.trim(); }).filter(Boolean);
+    // 從 Excel 連表頭一起貼上時，略過表頭列
+    if(lines.length && /姓名/.test(lines[0]) && /班|座|號|學|數/.test(lines[0])) lines.shift();
+    // 單行、完全沒有數字：視為用逗號或空白隔開的一串姓名
+    if(lines.length === 1){
+      var toks = lines[0].split(/[\s,，、;；]+/).filter(Boolean);
+      if(toks.length > 1 && !toks.some(function(t){ return /\d/.test(t); })) lines = toks;
+    }
+    var isSeat = function(t){ return /^\d{1,2}$/.test(t); };
+    return lines.map(function(s){
+      s = s.replace(/^(\d{1,2})\s*[.．)）:：]\s*/, "$1 ");     // 5. 王小明
+      s = s.replace(/^(\d{3})[-\/._](\d{1,2})(?=\s|$)/, "$1 $2"); // 701-03 王小明
+      s = s.replace(/^(\d{5})(?=\D)/, "$1 ");                    // 70103王小明
+      s = s.replace(/(\D)(\d{5})$/, "$1 $2");                    // 王小明70103
+      var t = s.split(/[\s,，、;；]+/).filter(Boolean);
+      if(!t.length) return null;
+      var p = { klass:"", no:"", name:"" };
+      // 五碼學號：不論放在哪個位置，前三碼班級、後兩碼座號
+      var id = -1;
+      for(var i=0;i<t.length;i++){ if(/^\d{5}$/.test(t[i])){ id = i; break; } }
+      if(id >= 0){
+        p.klass = t[id].slice(0,3); p.no = t[id].slice(3);
+        p.name = t.filter(function(_,k){ return k !== id; }).join(" ");
+        return p;
+      }
+      if(t.length === 1){
+        p.name = t[0];
+      }else if(t.length === 2){
+        if(isSeat(t[0])) p.no = t[0]; else p.klass = t[0];
+        p.name = t[1];
+      }else if(/\d/.test(t[1])){
+        p.klass = t[0]; p.no = t[1]; p.name = t.slice(2).join(" ");
+      }else if(isSeat(t[0])){
+        p.no = t[0]; p.name = t.slice(1).join(" ");
+      }else{
+        p.klass = t[0]; p.name = t.slice(1).join(" ");
+      }
+      return p;
+    }).filter(Boolean);
+  }
+
+  function sortPeople(arr){
+    return arr.map(function(p,i){ return { p:p, i:i }; }).sort(function(a,b){
+      var c = a.p.klass.localeCompare(b.p.klass, "zh-Hant", { numeric:true });
+      if(c) return c;
+      var sa = parseInt(a.p.no,10), sb = parseInt(b.p.no,10);
+      if(isNaN(sa)) sa = 1e9;
+      if(isNaN(sb)) sb = 1e9;
+      return (sa - sb) || (a.i - b.i);
+    }).map(function(x){ return x.p; });
+  }
+
+  /* ---------- 建表 ---------- */
+  function el(tag, cls, text){
+    var n = document.createElement(tag);
+    if(cls) n.className = cls;
+    if(text != null) n.textContent = text;
+    return n;
+  }
+
+  function buildTable(rows, cfg){
+    var t = el("table","roll" + (cfg.zebra ? " zebra" : ""));
+    var cg = document.createElement("colgroup");
+    var thead = document.createElement("thead");
+    var tr = document.createElement("tr");
+
+    function col(w){ var c=document.createElement("col"); if(w) c.style.width=w; cg.appendChild(c); }
+
+    var nChk = cfg.mode === "once" ? 1 : cfg.colTitles.length;
+    if(cfg.showClass){ col(cfg.two ? "15mm" : "19mm"); tr.appendChild(el("th",null,"班級")); }
+    if(cfg.showNo){ col(cfg.two ? "11mm" : "14mm"); tr.appendChild(el("th",null,"座號")); }
+    col(cfg.two ? "22mm" : "34mm");
+    tr.appendChild(el("th",null,"姓名"));
+
+    if(cfg.mode === "once"){
+      // 單次：有備註欄時，備註吃掉剩下的寬度；沒有備註時由勾選欄吃掉
+      col(cfg.note ? (cfg.two ? "13mm" : "20mm") : null);
+      tr.appendChild(el("th",null,"出席"));
+      if(cfg.note){ col(null); tr.appendChild(el("th",null,"備註")); }
+    }else{
+      for(var i=0;i<cfg.colTitles.length;i++){
+        col(null);
+        tr.appendChild(el("th",null,cfg.colTitles[i]));
+      }
+      if(cfg.note){ col(cfg.two ? "14mm" : "18mm"); tr.appendChild(el("th",null,"備註")); }
+    }
+    thead.appendChild(tr);
+    t.appendChild(cg); t.appendChild(thead);
+
+    var tb = document.createElement("tbody");
+    rows.forEach(function(r){
+      var row = document.createElement("tr");
+      row.style.height = cfg.rowH + "mm";
+      if(r.blank) row.className = "blank";
+      if(cfg.showClass) row.appendChild(el("td","c-no", r.blank ? "" : r.klass));
+      if(cfg.showNo) row.appendChild(el("td","c-no", r.blank ? "" : r.no));
+      row.appendChild(el("td","c-name", r.name || ""));
+      for(var k=0;k<nChk;k++){
+        var td = el("td","c-chk", "");
+        if(cfg.box) td.appendChild(el("span","bx",null));
+        row.appendChild(td);
+      }
+      if(cfg.note) row.appendChild(el("td", null, ""));
+      tb.appendChild(row);
+    });
+    t.appendChild(tb);
+    return t;
+  }
+
+  function buildSheet(rows, cfg, pageNo, pageTotal){
+    var sheet = el("div","sheet");
+
+    var head = el("div","sh-head");
+    head.appendChild(el("h2","sh-title", cfg.title || "點名表"));
+    var sub = el("div","sh-sub");
+    function bit(label, val){
+      if(!val) return;
+      var s = el("span", null, label + "：");
+      s.appendChild(el("i", null, val));
+      sub.appendChild(s);
+    }
+    bit("班別", cfg.klass);
+    bit("課程", cfg.event);
+    bit("教師", cfg.teacher);
+    bit("日期", cfg.dateText);
+    bit("地點", cfg.place);
+    if(sub.childNodes.length) head.appendChild(sub);
+    sheet.appendChild(head);
+    sheet.appendChild(el("div","sh-rule"));
+
+    var tables = el("div","tables");
+    if(cfg.two){
+      var half = Math.ceil(rows.length/2);
+      var a = document.createElement("div"); a.appendChild(buildTable(rows.slice(0,half), cfg));
+      var b = document.createElement("div");
+      var right = rows.slice(half);
+      if(right.length) b.appendChild(buildTable(right, cfg));
+      tables.appendChild(a); tables.appendChild(b);
+    }else{
+      var d = document.createElement("div"); d.appendChild(buildTable(rows, cfg)); tables.appendChild(d);
+    }
+    sheet.appendChild(tables);
+
+    var foot = el("div","sh-foot");
+    if(cfg.tally){
+      var ta = el("div","tally");
+      // 應到＝這一頁的人數，方便對照實到
+      var expected = rows.filter(function(r){ return !r.blank; }).length;
+      ["應到","實到","請假","缺席"].forEach(function(k){
+        var s = el("span", null, k + "　");
+        s.appendChild(el("u", null, (k === "應到" && expected) ? String(expected) : "\u00a0"));
+        s.appendChild(document.createTextNode(" 人"));
+        ta.appendChild(s);
+      });
+      foot.appendChild(ta);
+    }
+    if(cfg.sign){
+      var sr = el("div","sign-row");
+      var teacherLabel = cfg.teacher ? ("授課教師　" + cfg.teacher + "　簽章") : "授課教師簽章";
+      [teacherLabel,"主任核章"].forEach(function(k){
+        var s = el("span", null, k + "　");
+        s.appendChild(el("u", null, ""));
+        sr.appendChild(s);
+      });
+      foot.appendChild(sr);
+    }
+    if(pageTotal > 1){
+      var st = el("div","stamp");
+      st.appendChild(el("b", null, "第 " + pageNo + " / " + pageTotal + " 頁"));
+      foot.appendChild(st);
+    }
+    sheet.appendChild(foot);
+    return sheet;
+  }
+
+  /* ---------- 主流程 ---------- */
+  function readCfg(){
+    var mode = document.querySelector('input[name=mode]:checked').value;
+    var n = Math.max(1, Math.min(12, parseInt($("cols").value,10) || 1));
+    var raw = $("colnames").value.split(/[,，、]/).map(function(s){return s.trim();}).filter(Boolean);
+    var titles = [];
+    for(var i=0;i<n;i++) titles.push(raw[i] || ("第" + (i+1) + "次"));
+
+    var d = $("date").value;
+    var dateText = "";
+    if(d){
+      var p = d.split("-");
+      dateText = (parseInt(p[0],10)-1911) + "年" + parseInt(p[1],10) + "月" + parseInt(p[2],10) + "日";
+    }
+    return {
+      title: $("title").value.trim(),
+      klass: $("klass").value.trim(),
+      event: $("event").value.trim(),
+      place: $("place").value.trim(),
+      teacher: $("teacher").value.trim(),
+      dateText: mode === "once" ? dateText : "",
+      mode: mode,
+      colTitles: titles,
+      showNo: $("opt-no").checked,
+      showClass: true,
+      box: $("opt-box").checked,
+      sort: $("opt-sort").checked,
+      note: $("opt-note").checked,
+      zebra: $("opt-zebra").checked,
+      tally: $("opt-tally").checked,
+      sign: $("opt-stamp").checked,
+      two: $("opt-two").checked,
+      rowH: parseFloat($("rowh").value),
+      blanks: Math.max(0, Math.min(15, parseInt($("blanks").value,10) || 0))
+    };
+  }
+
+  function render(){
+    var cfg = readCfg();
+    var people = parseNames($("names").value);
+    if(cfg.sort) people = sortPeople(people);
+    // 班級欄不設開關：名單裡有班級就一定顯示；整份都沒有班級時才收起（下方提示會說明）
+    cfg.showClass = people.length ? people.some(function(p){ return p.klass; }) : true;
+    // 讀取結果直接告訴使用者，沒讀到班級或座號時用紅字提醒（欄位仍照勾選顯示）
+    var pn = $("parse-note");
+    if(!people.length){
+      pn.className = "hint"; pn.textContent = "";
+    }else{
+      var miss = people.filter(function(p){ return !p.klass || !p.no; });
+      var klasses = [];
+      people.forEach(function(p){ if(p.klass && klasses.indexOf(p.klass) < 0) klasses.push(p.klass); });
+      if(miss.length){
+        pn.className = "hint warn";
+        pn.textContent = "有 " + miss.length + " 位沒讀到班級或座號（例如：" + (miss[0].name || "空白") +
+          "）。每行請寫成「70103 王小明」或「701 03 王小明」。";
+      }else{
+        pn.className = "hint";
+        pn.textContent = "已讀到 " + people.length + " 位；班級：" + klasses.slice(0,8).join("、") +
+          (klasses.length > 8 ? "…" : "") + "，座號都有。";
+      }
+    }
+    var rows = people.slice();
+    for(var i=0;i<cfg.blanks;i++) rows.push({ klass:"", no:"", name:"", blank:true });
+
+    // 每頁可容納列數：可用高度約 205mm（扣表頭表尾），乘上雙欄
+    var usable = 205 - (cfg.tally ? 10 : 0) - (cfg.sign ? 12 : 0);
+    var perCol = Math.max(4, Math.floor(usable / cfg.rowH));
+    var perPage = cfg.two ? perCol * 2 : perCol;
+
+    var pages = [];
+    if(!rows.length) pages.push([]);
+    for(var j=0;j<rows.length;j+=perPage) pages.push(rows.slice(j, j+perPage));
+
+    out.textContent = "";
+    pages.forEach(function(pg, idx){
+      out.appendChild(buildSheet(pg, cfg, idx+1, pages.length));
+    });
+
+    $("cnt").textContent = people.length;
+    $("meta-n").textContent = people.length;
+    $("meta-p").textContent = pages.length;
+    save();
+  }
+
+  /* ---------- 縮放 ---------- */
+  function applyZoom(){
+    var z = parseInt($("zoom").value,10) / 100;
+    $("scaler").style.transform = "scale(" + z + ")";
+    $("zoom-v").textContent = Math.round(z*100) + "%";
+    // 讓外框高度跟著縮小，避免下方留下大量空白
+    var h = out.offsetHeight;
+    $("scaler").style.marginBottom = Math.round(h * (z - 1)) + "px";
+  }
+
+  /* ---------- 目前狀態的自動儲存 ---------- */
+  var KEYS = ["names","title","klass","date","event","place","teacher","cols","colnames","rowh","blanks","zoom"];
+  var CHECKS = ["opt-no","opt-box","opt-note","opt-zebra","opt-tally","opt-stamp","opt-two","opt-sort"];
+  var CUR_KEY = "signin-sheet-v1";
+  var LIST_KEY = "signin-sheet-lists-v1";
+
+  function snapshot(){
+    var o = {};
+    KEYS.forEach(function(k){ o[k] = $(k).value; });
+    CHECKS.forEach(function(k){ o[k] = $(k).checked; });
+    o.mode = document.querySelector('input[name=mode]:checked').value;
+    return o;
+  }
+  function restore(o){
+    if(!o) return false;
+    KEYS.forEach(function(k){ if(o[k] != null) $(k).value = o[k]; });
+    CHECKS.forEach(function(k){ if(o[k] != null) $(k).checked = !!o[k]; });
+    if($("names").value === OLD_SAMPLE || $("names").value === SAMPLE_V2) $("names").value = SAMPLE;
+    $("title").value = $("title").value.replace(/簽到表/g, "點名表");
+    if(o.mode){
+      var r = document.querySelector('input[name=mode][value="' + o.mode + '"]');
+      if(r) r.checked = true;
+    }
+    return true;
+  }
+  function save(){
+    try{ localStorage.setItem(CUR_KEY, JSON.stringify(snapshot())); }catch(e){}
+  }
+  function load(){
+    try{
+      var s = localStorage.getItem(CUR_KEY);
+      return s ? restore(JSON.parse(s)) : false;
+    }catch(e){ return false; }
+  }
+
+  /* ---------- 名單庫 ---------- */
+  var lists = [];
+  function readLists(){
+    try{
+      var s = localStorage.getItem(LIST_KEY);
+      var o = s ? JSON.parse(s) : null;
+      lists = (o && Array.isArray(o.items)) ? o.items : [];
+    }catch(e){ lists = []; }
+  }
+  function writeLists(){
+    try{
+      localStorage.setItem(LIST_KEY, JSON.stringify({ v:1, items:lists }));
+      return true;
+    }catch(e){
+      note("瀏覽器不允許儲存，請改用「備份／還原」把設定複製出來保存。");
+      return false;
+    }
+  }
+  function fillPresetSelect(selectName){
+    var sel = $("preset");
+    sel.textContent = "";
+    if(!lists.length){
+      sel.appendChild(new Option("（尚未儲存任何名單）",""));
+      return;
+    }
+    sel.appendChild(new Option("—— 選擇要載入的名單 ——",""));
+    lists.forEach(function(it){
+      var n = parseNames(it.data && it.data.names || "").length;
+      sel.appendChild(new Option(it.name + "（" + n + " 人）", it.name));
+    });
+    if(selectName) sel.value = selectName;
+  }
+  function findList(name){
+    for(var i=0;i<lists.length;i++) if(lists[i].name === name) return i;
+    return -1;
+  }
+  var noteTimer = null;
+  function note(msg){
+    var h = $("list-note");
+    h.textContent = msg;
+    h.classList.add("saved-flash");
+    clearTimeout(noteTimer);
+    noteTimer = setTimeout(function(){
+      h.classList.remove("saved-flash");
+      h.textContent = DEFAULT_NOTE;
+    }, 4000);
+  }
+  var DEFAULT_NOTE = "儲存的是「名單＋表頭設定」整組，下次載入就能直接印。資料存在這台電腦的瀏覽器裡；換電腦或清快取前，用下面的備份帶著走。";
+
+  /* ---------- 初始化 ---------- */
+  var today = new Date();
+  $("date").value = today.getFullYear() + "-" +
+    String(today.getMonth()+1).padStart(2,"0") + "-" +
+    String(today.getDate()).padStart(2,"0");
+  $("names").value = SAMPLE;
+
+  load();
+
+  function syncMode(){
+    var many = document.querySelector('input[name=mode]:checked').value === "many";
+    $("many-opts").hidden = !many;
+  }
+  syncMode();
+
+  var inputs = document.querySelectorAll(".panel input:not([data-noauto]), .panel select:not([data-noauto]), .panel textarea:not([data-noauto])");
+  Array.prototype.forEach.call(inputs, function(n){
+    n.addEventListener("input", function(){ syncMode(); render(); applyZoom(); });
+    n.addEventListener("change", function(){ syncMode(); render(); applyZoom(); });
+  });
+
+  $("btn-make").addEventListener("click", function(){ render(); applyZoom(); });
+  $("btn-print").addEventListener("click", function(){ window.print(); });
+  $("btn-clear").addEventListener("click", function(){
+    $("names").value = ""; $("names").focus(); render(); applyZoom();
+  });
+  $("btn-sample").addEventListener("click", function(){
+    $("names").value = SAMPLE; render(); applyZoom();
+  });
+  $("zoom").addEventListener("input", applyZoom);
+
+  /* ---------- 名單庫按鈕 ---------- */
+  readLists();
+  fillPresetSelect();
+
+  $("btn-save").addEventListener("click", function(){
+    var name = $("preset-name").value.trim() || $("klass").value.trim();
+    if(!name){ note("請先幫這份名單取個名稱。"); $("preset-name").focus(); return; }
+    var idx = findList(name);
+    var entry = { name:name, data:snapshot(), at:new Date().toISOString().slice(0,10) };
+    if(idx >= 0) lists[idx] = entry; else lists.push(entry);
+    lists.sort(function(a,b){ return a.name.localeCompare(b.name,"zh-Hant"); });
+    if(writeLists()){
+      fillPresetSelect(name);
+      $("preset-name").value = "";
+      note("已儲存「" + name + "」" + (idx >= 0 ? "（覆蓋原本那份）" : "") + "。");
+    }
+  });
+
+  $("btn-load").addEventListener("click", function(){
+    var name = $("preset").value;
+    if(!name){ note("請先從上面選一份名單。"); return; }
+    var idx = findList(name);
+    if(idx < 0){ note("找不到這份名單。"); return; }
+    restore(lists[idx].data);
+    syncMode(); render(); applyZoom();
+    note("已載入「" + name + "」，" + parseNames($("names").value).length + " 人。");
+  });
+
+  $("btn-del").addEventListener("click", function(){
+    var name = $("preset").value;
+    if(!name){ note("請先從上面選一份名單。"); return; }
+    var idx = findList(name);
+    if(idx < 0) return;
+    var removed = lists.splice(idx,1)[0];
+    if(writeLists()){
+      fillPresetSelect();
+      $("preset-name").value = removed.name;
+      note("已刪除「" + removed.name + "」。名稱留在下面輸入框，按儲存可以還原。");
+    }
+  });
+
+  $("btn-backup").addEventListener("click", function(){
+    var box = $("backup-box");
+    box.hidden = !box.hidden;
+    if(!box.hidden){
+      $("backup").value = JSON.stringify({ v:1, items:lists });
+      $("backup").select();
+    }
+  });
+
+  $("btn-copy").addEventListener("click", function(){
+    var ta = $("backup");
+    ta.select();
+    try{
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(ta.value);
+      }else{
+        document.execCommand("copy");
+      }
+      note("備份內容已複製，貼到記事本或雲端硬碟存起來即可。");
+    }catch(e){
+      note("複製失敗，請手動全選上面的文字複製。");
+    }
+  });
+
+  $("btn-restore").addEventListener("click", function(){
+    var raw = $("backup").value.trim();
+    if(!raw){ note("請先把備份內容貼到上面的框裡。"); return; }
+    var o;
+    try{ o = JSON.parse(raw); }catch(e){ note("讀不到備份內容，請確認貼上的是完整的備份文字。"); return; }
+    if(!o || !Array.isArray(o.items)){ note("這份備份的格式不對，請重新複製一次完整內容。"); return; }
+    o.items.forEach(function(it){
+      if(!it || !it.name || !it.data) return;
+      var idx = findList(it.name);
+      if(idx >= 0) lists[idx] = it; else lists.push(it);
+    });
+    lists.sort(function(a,b){ return a.name.localeCompare(b.name,"zh-Hant"); });
+    if(writeLists()){
+      fillPresetSelect();
+      note("已還原 " + o.items.length + " 份名單。");
+    }
+  });
+
+  render();
+  applyZoom();
+  window.addEventListener("resize", applyZoom);
+})();
+</script>

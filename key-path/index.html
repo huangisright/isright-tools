@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>鍵盤路徑勘查</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chivo+Mono:wght@400;600;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<style>
+:root{
+  --bg:#EDF1F0;--panel:#FFFFFF;--panel-2:#F5F8F7;--line:#D2DCDA;--line-soft:#E3EAE9;
+  --ink:#0E1A1C;--ink-2:#3D4F52;--ink-3:#6D8083;
+  --accent:#0C8B85;--accent-soft:#D6EFED;--amber:#B07708;--red:#CE3628;
+  --code-bg:#0E1416;--code-ink:#E8F2F1;
+  --shadow:0 1px 2px rgba(14,26,28,.06),0 8px 24px -12px rgba(14,26,28,.18);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0B1113;--panel:#141C1E;--panel-2:#101719;--line:#263335;--line-soft:#1D282A;
+  --ink:#E4EDEC;--ink-2:#A9BCBB;--ink-3:#7A8E8E;
+  --accent:#3FD0C9;--accent-soft:#12302F;--amber:#F2B23E;--red:#FF6152;
+  --code-bg:#080D0E;--code-ink:#E8F2F1;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 12px 32px -16px rgba(0,0,0,.8);
+}}
+:root[data-theme="dark"]{
+  --bg:#0B1113;--panel:#141C1E;--panel-2:#101719;--line:#263335;--line-soft:#1D282A;
+  --ink:#E4EDEC;--ink-2:#A9BCBB;--ink-3:#7A8E8E;
+  --accent:#3FD0C9;--accent-soft:#12302F;--amber:#F2B23E;--red:#FF6152;
+  --code-bg:#080D0E;--code-ink:#E8F2F1;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 12px 32px -16px rgba(0,0,0,.8);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-size:15px;line-height:1.65;-webkit-font-smoothing:antialiased;
+  font-family:"IBM Plex Sans","Noto Sans TC",system-ui,-apple-system,sans-serif}
+.wrap{max-width:760px;margin:0 auto;padding:30px 20px 72px}
+h1{font-family:"Chivo Mono","IBM Plex Sans",monospace;font-weight:800;font-size:clamp(21px,3.4vw,28px);
+  letter-spacing:-.02em;margin:0 0 6px;text-wrap:balance}
+.lede{color:var(--ink-3);font-size:14px;margin:0 0 26px;max-width:60ch}
+.mod{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px 20px;
+  box-shadow:var(--shadow);margin-bottom:16px}
+.eyebrow{font-size:10.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3);
+  margin:0 0 12px;display:flex;align-items:center;gap:8px}
+.eyebrow .dot{width:5px;height:5px;border-radius:50%;background:var(--accent);flex:none}
+p{margin:0 0 10px}p:last-child{margin-bottom:0}
+strong{font-weight:600}
+code,.mono{font-family:"Chivo Mono",monospace;font-size:.92em}
+code{background:var(--panel-2);border:1px solid var(--line-soft);border-radius:4px;padding:1px 5px}
+kbd{font-family:"Chivo Mono",monospace;font-size:.86em;background:var(--panel-2);border:1px solid var(--line);
+  border-bottom-width:2px;border-radius:5px;padding:2px 6px;white-space:nowrap}
+.drag{display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  background:var(--accent-soft);border:1px dashed var(--accent);border-radius:9px;padding:16px}
+a.bm{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;font-weight:700;font-size:15px;
+  padding:10px 20px;border-radius:7px;cursor:grab;box-shadow:0 2px 8px rgba(12,139,133,.3)}
+a.bm:active{cursor:grabbing}
+:root[data-theme="dark"] a.bm{color:#04201F}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) a.bm{color:#04201F}}
+.drag .t{flex:1 1 220px;font-size:13px;color:var(--ink-2)}
+ol.steps{counter-reset:s;list-style:none;margin:0;padding:0}
+ol.steps>li{position:relative;padding:0 0 16px 36px;border-left:1px solid var(--line-soft);margin-left:9px}
+ol.steps>li:last-child{border-left-color:transparent;padding-bottom:0}
+ol.steps>li::before{counter-increment:s;content:counter(s);position:absolute;left:-10px;top:0;
+  width:20px;height:20px;border-radius:50%;background:var(--accent);color:#fff;
+  font:700 11px/20px "Chivo Mono",monospace;text-align:center}
+:root[data-theme="dark"] ol.steps>li::before{color:#04201F}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) ol.steps>li::before{color:#04201F}}
+ol.steps b{display:block;font-weight:600;margin-bottom:2px}
+ol.steps .d{font-size:13.5px;color:var(--ink-2)}
+.callout{border-left:3px solid var(--amber);background:var(--panel-2);border-radius:0 7px 7px 0;
+  padding:11px 14px;font-size:13.5px;color:var(--ink-2);margin:12px 0 0}
+.callout b{color:var(--ink)}
+ul.plain{margin:0;padding:0;list-style:none}
+ul.plain li{padding:9px 0;border-bottom:1px solid var(--line-soft);font-size:13.5px;color:var(--ink-2)}
+ul.plain li:last-child{border-bottom:0}
+ul.plain b{color:var(--ink);font-weight:600}
+details{margin-top:14px}
+summary{cursor:pointer;font-size:13px;color:var(--accent);font-weight:500}
+summary:focus-visible,a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+pre{background:var(--code-bg);color:var(--code-ink);border-radius:8px;padding:14px;overflow-x:auto;
+  font-family:"Chivo Mono",monospace;font-size:11px;line-height:1.5;max-height:340px;margin:10px 0 0}
+button.copy{background:var(--panel-2);border:1px solid var(--line);color:var(--ink);border-radius:6px;
+  padding:6px 12px;font:inherit;font-size:12.5px;cursor:pointer;margin-top:10px}
+button.copy:hover{border-color:var(--accent);color:var(--accent)}
+footer{margin-top:28px;padding-top:16px;border-top:1px solid var(--line);font-size:12.5px;color:var(--ink-3)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>鍵盤路徑勘查</h1>
+<p class="lede">在真正的登記頁上按一下，它會把整頁的 Tab 順序標出來，告訴你「Tab 幾次會到登記鍵」。它不點任何東西，只告訴你路怎麼走。</p>
+
+<div class="mod">
+  <p class="eyebrow"><span class="dot"></span>安裝</p>
+  <div class="drag">
+    <a class="bm" href="javascript:void(0)">⌨︎ 鍵盤路徑勘查</a>
+    <div class="t">把左邊這顆按鈕<strong>拖到書籤列</strong>就裝好了。書籤列沒開的話按 <kbd>⇧ ⌘ B</kbd>。</div>
+  </div>
+  <details>
+    <summary>拖不動？改用手動新增，或看它到底做了什麼</summary>
+    <p style="font-size:13.5px;color:var(--ink-2);margin-top:10px">Chrome 選單 → 書籤 → 書籤管理員 → 右上角三點 → 新增書籤，名稱隨便填，網址貼下面複製到的那一長串。</p>
+    <button class="copy" id="cp">複製書籤網址</button>
+    <p style="font-size:13.5px;color:var(--ink-2);margin-top:14px">以下是完整原始碼，可以自己讀過再決定要不要用：</p>
+    <pre id="src">
+(function(){
+  if(window.__kbScout){ window.__kbScout.toggle(); return; }
+  var SEL='a[href],area[href],button,input,select,textarea,summary,[contenteditable]:not([contenteditable="false"]),[tabindex]';
+  var HOT=/登記|報名|立即|馬上|我要|送出|遞交|確認|確定|同意|結帳|購買|下單|加入購物車|領取|索取|參加|申請|submit|apply|join|register/i;
+  function vis(el){
+    if(el.disabled) return false;
+    if(el.getAttribute('aria-hidden')==='true') return false;
+    if(el.type==='hidden') return false;
+    var r=el.getBoundingClientRect();
+    if(r.width===0&amp;&amp;r.height===0) return false;
+    var cs=getComputedStyle(el);
+    if(cs.visibility==='hidden'||cs.display==='none'||cs.opacity==='0') return false;
+    return true;
+  }
+  function tabbable(el){
+    var ti=el.getAttribute('tabindex');
+    if(ti!==null&amp;&amp;parseInt(ti,10)&lt;0) return false;
+    return vis(el);
+  }
+  function label(el){
+    var t=(el.getAttribute('aria-label')||'').trim();
+    var tag=el.tagName.toLowerCase();
+    var formish = tag==='select'||tag==='textarea'||(tag==='input'&amp;&amp;!/submit|button|image/.test(el.type||''));
+    if(!t&amp;&amp;formish){
+      var lb=null;
+      try{ lb = el.id?document.querySelector('label[for="'+CSS.escape(el.id)+'"]'):null; }catch(e){}
+      if(!lb&amp;&amp;el.closest) lb=el.closest('label');
+      if(lb) t=(lb.innerText||'').replace(/\s+/g,' ').trim();
+      if(!t&amp;&amp;tag==='select'&amp;&amp;el.selectedOptions&amp;&amp;el.selectedOptions[0]) t='選單：'+el.selectedOptions[0].text.trim();
+    }
+    if(!t&amp;&amp;!formish) t=(el.innerText||'').replace(/\s+/g,' ').trim();
+    if(!t) t=(el.value||'').trim();
+    if(!t) t=(el.getAttribute('title')||el.getAttribute('alt')||el.getAttribute('placeholder')||'').trim();
+    if(!t) t='&lt;'+el.tagName.toLowerCase()+'&gt;';
+    return t.length&gt;28?t.slice(0,28)+'…':t;
+  }
+  function scan(){
+    var all=[].slice.call(document.querySelectorAll(SEL)).filter(tabbable);
+    var pos=[],nat=[];
+    all.forEach(function(el){
+      var ti=parseInt(el.getAttribute('tabindex')||'0',10);
+      (ti&gt;0?pos:nat).push({el:el,ti:ti});
+    });
+    pos.sort(function(a,b){return a.ti-b.ti;});
+    return pos.concat(nat).map(function(o,i){
+      return {el:o.el,n:i+1,name:label(o.el),hot:HOT.test(label(o.el))||HOT.test(o.el.className||'')};
+    });
+  }
+  var host=document.createElement('div');
+  host.style.cssText='position:fixed;inset:0;z-index:2147483647;pointer-events:none';
+  document.documentElement.appendChild(host);
+  var sr=host.attachShadow({mode:'open'});
+  sr.innerHTML='&lt;style&gt;'+
+  '*{box-sizing:border-box;font-family:-apple-system,"Noto Sans TC",system-ui,sans-serif}'+
+  '.badge{position:fixed;pointer-events:auto;cursor:pointer;background:#0C8B85;color:#fff;font:600 11px/1 monospace;'+
+  'padding:3px 5px;border-radius:4px;box-shadow:0 1px 4px rgba(0,0,0,.4);transform:translate(-50%,-50%);white-space:nowrap}'+
+  '.badge.hot{background:#CE3628}'+
+  '.badge.tgt{background:#111;outline:2px solid #F2B23E}'+
+  '.ring{position:fixed;pointer-events:none;border:2px solid #0C8B85;border-radius:4px}'+
+  '.ring.hot{border-color:#CE3628}'+
+  '.ring.tgt{border-color:#F2B23E;border-width:3px;box-shadow:0 0 0 3px rgba(242,178,62,.25)}'+
+  '.ring.cur{border-color:#7C3AED;border-style:dashed}'+
+  '#p{position:fixed;top:12px;right:12px;width:288px;pointer-events:auto;background:#0E1416;color:#E4EDEC;'+
+  'border:1px solid #263335;border-radius:10px;box-shadow:0 10px 34px rgba(0,0,0,.5);font-size:13px;overflow:hidden}'+
+  '#p h4{margin:0;padding:9px 12px;font-size:12px;letter-spacing:.1em;background:#141C1E;border-bottom:1px solid #263335;'+
+  'display:flex;align-items:center;gap:8px}'+
+  '#p h4 b{flex:1;font-weight:700}'+
+  '#p .bd{padding:10px 12px;max-height:60vh;overflow:auto}'+
+  '.big{font:800 26px/1.1 monospace;color:#3FD0C9;margin:2px 0 2px}'+
+  '.mut{color:#8DA0A0;font-size:11.5px;line-height:1.55}'+
+  '.rec{background:#12211F;border:1px solid #1E3B38;border-radius:7px;padding:9px 10px;margin:8px 0}'+
+  'button{background:#1A2427;color:#E4EDEC;border:1px solid #2E3C3F;border-radius:6px;padding:5px 9px;'+
+  'font-size:12px;cursor:pointer;margin:2px 3px 2px 0}'+
+  'button:hover{border-color:#3FD0C9;color:#3FD0C9}'+
+  'button.on{background:#3FD0C9;color:#04201F;border-color:#3FD0C9;font-weight:700}'+
+  'button.x{background:transparent;border:0;color:#8DA0A0;font-size:16px;padding:0 4px;margin:0}'+
+  '#toast{position:fixed;left:50%;top:18%;transform:translateX(-50%);background:#CE3628;color:#fff;'+
+  'padding:10px 16px;border-radius:8px;font-weight:700;font-size:14px;box-shadow:0 6px 24px rgba(0,0,0,.5);display:none}'+
+  'ol{margin:6px 0 0;padding-left:17px}li{margin:3px 0;color:#A9BCBB;font-size:11.5px;line-height:1.5}'+
+  '&lt;/style&gt;'+
+  '&lt;div id="rings"&gt;&lt;/div&gt;&lt;div id="badges"&gt;&lt;/div&gt;&lt;div id="toast"&gt;&lt;/div&gt;'+
+  '&lt;div id="p"&gt;&lt;h4&gt;&lt;b&gt;鍵盤路徑勘查&lt;/b&gt;'+
+  '&lt;button class="x" id="min"&gt;–&lt;/button&gt;&lt;button class="x" id="close"&gt;×&lt;/button&gt;&lt;/h4&gt;'+
+  '&lt;div class="bd" id="bd"&gt;&lt;/div&gt;&lt;/div&gt;';
+  var $=function(s){return sr.querySelector(s);};
+  var items=[], target=null, guard=true, live=true, minimized=false;
+  function toast(msg){
+    var t=$('#toast'); t.textContent=msg; t.style.display='block';
+    clearTimeout(t._h); t._h=setTimeout(function(){t.style.display='none';},1600);
+  }
+  function curIndex(){
+    var a=document.activeElement;
+    if(!a||a===document.body) return 0;
+    for(var i=0;i&lt;items.length;i++) if(items[i].el===a) return items[i].n;
+    return -1;
+  }
+  function draw(){
+    var rings=$('#rings'), badges=$('#badges');
+    rings.innerHTML=''; badges.innerHTML='';
+    if(minimized) return;
+    var ci=curIndex();
+    items.forEach(function(it){
+      var r=it.el.getBoundingClientRect();
+      if(r.bottom&lt;0||r.top&gt;innerHeight||r.width===0) return;
+      var cls=it===target?'tgt':(it.hot?'hot':'');
+      var ring=document.createElement('div');
+      ring.className='ring '+cls+(it.n===ci?' cur':'');
+      ring.style.cssText='left:'+r.left+'px;top:'+r.top+'px;width:'+r.width+'px;height:'+r.height+'px';
+      rings.appendChild(ring);
+      var b=document.createElement('div');
+      b.className='badge '+cls;
+      b.textContent=it.n;
+      b.style.cssText='left:'+r.left+'px;top:'+r.top+'px';
+      b.title=it.name;
+      b.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();setTarget(it);});
+      badges.appendChild(b);
+    });
+  }
+  function recipe(){
+    if(!target) return '&lt;div class="mut"&gt;點畫面上任一個號碼，把它設成目標。紅色的是我猜的登記／送出鍵。&lt;/div&gt;';
+    var ci=curIndex();
+    var left = ci&gt;=0 ? target.n-ci : null;
+    var s='&lt;div class="rec"&gt;&lt;div class="mut"&gt;目標&lt;/div&gt;&lt;div style="font-weight:700;margin:2px 0 6px"&gt;'+
+    target.n+'. '+target.name.replace(/&lt;/g,'&amp;lt;')+'&lt;/div&gt;'+
+    '&lt;div class="mut"&gt;實戰動作&lt;/div&gt;&lt;div class="big"&gt;Tab × '+target.n+'&lt;/div&gt;'+
+    '&lt;div class="mut"&gt;先在頁面空白處點一下把焦點清掉，再按 '+target.n+' 次 Tab，然後 Enter。&lt;/div&gt;&lt;/div&gt;';
+    if(ci&gt;=0) s+='&lt;div class="mut"&gt;目前焦點在第 '+(ci||'—')+' 個'+(left!==null&amp;&amp;left&gt;0?'，還要 Tab '+left+' 次':(left===0?'，就是這個':''))+'。&lt;/div&gt;';
+    else s+='&lt;div class="mut"&gt;目前焦點不在掃描清單裡（可能在 iframe 或網址列）。&lt;/div&gt;';
+    return s;
+  }
+  function render(){
+    if(minimized){ $('#bd').innerHTML='&lt;div class="mut"&gt;已收起，點 – 展開。&lt;/div&gt;'; return; }
+    var ifr=document.querySelectorAll('iframe').length;
+    var hots=items.filter(function(i){return i.hot;}).slice(0,6);
+    var chips = hots.length? '&lt;div class="mut" style="margin-top:8px"&gt;可能的目標&lt;/div&gt;&lt;div&gt;'+hots.map(function(h){
+      return '&lt;button data-n="'+h.n+'"&gt;'+h.n+'. '+h.name.replace(/&lt;/g,'&amp;lt;')+'&lt;/button&gt;';
+    }).join('')+'&lt;/div&gt;' : '';
+    $('#bd').innerHTML=
+    '&lt;div class="mut"&gt;掃到 &lt;b style="color:#E4EDEC"&gt;'+items.length+'&lt;/b&gt; 個可用 Tab 到達的元素'+
+    (ifr?'，另有 '+ifr+' 個 iframe（裡面的按鈕數不到，見下方說明）':'')+'。&lt;/div&gt;'+
+    recipe()+chips+
+    '&lt;div style="margin-top:8px"&gt;'+
+    '&lt;button id="rescan"&gt;重新掃描&lt;/button&gt;'+
+    '&lt;button id="gd" class="'+(guard?'on':'')+'"&gt;'+(guard?'✓ 演練護欄開':'演練護欄關')+'&lt;/button&gt;'+
+    '&lt;button id="clr"&gt;清除目標&lt;/button&gt;&lt;/div&gt;'+
+    '&lt;ol&gt;&lt;li&gt;頁面內容變動後（例如活動開放、按鈕才出現）要按「重新掃描」，號碼會變。&lt;/li&gt;'+
+    '&lt;li&gt;演練護欄開著時，Enter／空白鍵落在送出類按鈕上會被擋下來，可以安心在真的頁面上練。&lt;/li&gt;'+
+    '&lt;li&gt;這個工具不會替你點任何東西，也不送出任何資料。&lt;/li&gt;&lt;/ol&gt;';
+    $('#rescan').onclick=function(){ items=scan(); if(target&amp;&amp;items.indexOf(target)&lt;0) target=null; render(); draw(); };
+    $('#gd').onclick=function(){ guard=!guard; render(); };
+    $('#clr').onclick=function(){ target=null; render(); draw(); };
+    [].forEach.call(sr.querySelectorAll('[data-n]'),function(b){
+      b.onclick=function(){ var n=+b.getAttribute('data-n');
+      for(var i=0;i&lt;items.length;i++) if(items[i].n===n){ setTarget(items[i]); return; } };
+    });
+  }
+  function setTarget(it){ target=it; render(); draw(); }
+  $('#close').onclick=function(){ api.destroy(); };
+  $('#min').onclick=function(){ minimized=!minimized; $('#p').style.width=minimized?'160px':'288px'; render(); draw(); };
+  function keyGuard(e){
+    if(!guard) return;
+    if(e.key!=='Enter'&amp;&amp;e.key!==' ') return;
+    var a=document.activeElement; if(!a) return;
+    var tag=a.tagName.toLowerCase();
+    var isSubmit = tag==='button' || (tag==='input'&amp;&amp;/submit|button|image/.test(a.type||'')) ||
+    a.getAttribute('role')==='button' || (tag==='a'&amp;&amp;HOT.test(label(a)));
+    if(!isSubmit) return;
+    e.preventDefault(); e.stopImmediatePropagation();
+    toast('演練護欄擋下了這次送出');
+  }
+  function clickGuard(e){
+    if(!guard) return;
+    var a=e.target.closest?e.target.closest('button,input[type=submit],[role=button]'):null;
+    if(!a) return;
+    if(!HOT.test(label(a))) return;
+    e.preventDefault(); e.stopImmediatePropagation();
+    toast('演練護欄擋下了這次點擊');
+  }
+  addEventListener('keydown',keyGuard,true);
+  addEventListener('click',clickGuard,true);
+  var raf=null;
+  function tick(){ if(live){ draw(); } raf=requestAnimationFrame(tick); }
+  function onFocus(){ render(); draw(); }
+  addEventListener('focusin',onFocus,true);
+  addEventListener('focusout',onFocus,true);
+  var api={
+    toggle:function(){ minimized=!minimized; render(); draw(); },
+    destroy:function(){
+      cancelAnimationFrame(raf);
+      removeEventListener('keydown',keyGuard,true);
+      removeEventListener('click',clickGuard,true);
+      removeEventListener('focusin',onFocus,true);
+      removeEventListener('focusout',onFocus,true);
+      host.remove(); delete window.__kbScout;
+    }
+  };
+  window.__kbScout=api;
+  items=scan(); render(); tick();
+})();
+</pre>
+  </details>
+</div>
+
+<div class="mod">
+  <p class="eyebrow"><span class="dot"></span>活動前先勘查一次</p>
+  <ol class="steps">
+    <li><b>登入後打開登記頁</b><div class="d">要用你實戰時會用的那個瀏覽器和那個帳號，因為登入狀態會改變頁面上的元素數量，Tab 號碼跟著變。</div></li>
+    <li><b>點書籤列上的「鍵盤路徑勘查」</b><div class="d">頁面上每個 Tab 到得了的元素會冒出一個號碼，右上角出現控制面板。紅色號碼是它猜的登記／送出鍵。</div></li>
+    <li><b>選定目標</b><div class="d">點目標的號碼，或用面板上「可能的目標」的快捷鈕。面板會給你一行 <code>Tab × N</code>。</div></li>
+    <li><b>當場驗證一次</b><div class="d">在頁面空白處點一下把焦點清掉，按 N 次 Tab，看焦點是不是真的停在登記鍵上（面板會即時顯示你現在在第幾個）。護欄預設開著，這時候按 <kbd>Enter</kbd> 不會真的送出。</div></li>
+    <li><b>把數字記下來</b><div class="d">寫進倒數器的活動備註，或直接記在紙上。這個數字才是你實戰要用的東西。</div></li>
+  </ol>
+  <div class="callout"><b>如果登記鍵在活動開放前根本不存在</b>，勘查會掃不到它。這時候先勘查到「最接近的那個穩定元素」（例如同意條款的勾選框），實戰開放後按一次「重新掃描」再補上剩下幾次 Tab——或直接在開放後的頭幾秒重掃，通常還來得及。</div>
+</div>
+
+<div class="mod">
+  <p class="eyebrow"><span class="dot"></span>活動當天</p>
+  <ol class="steps">
+    <li><b>開好登記頁，開好倒數器</b><div class="d">倒數器用浮動視窗壓在登記頁上方，這樣不用切分頁。</div></li>
+    <li><b>在頁面空白處點一下</b><div class="d">這一步是把焦點歸零，Tab 才會從第 1 個開始數。網址列點過就不算，一定要點頁面本身的空白區。</div></li>
+    <li><b>發令時 Tab × N，然後 Enter</b><div class="d">手不用離開鍵盤，也不用瞄準。Tab 連按可以按很快，這一段通常在 100 毫秒內結束。</div></li>
+    <li><b>後面每一步同樣用鍵盤</b><div class="d">確認視窗跳出來通常 Tab 一兩次就到確定鍵。這一步也值得先勘查。</div></li>
+  </ol>
+</div>
+
+<div class="mod">
+  <p class="eyebrow"><span class="dot"></span>幾件要先知道的事</p>
+  <ul class="plain">
+    <li><b>號碼會變。</b>頁面內容一改（跳出橫幅、載入推薦商品、活動開放），Tab 順序就變了。所以勘查要盡量貼近實戰狀態，開放後也值得重掃一次。</li>
+    <li><b>iframe 裡的東西數不到。</b>面板會告訴你頁面上有幾個 iframe。如果登記表單在 iframe 裡，Tab 進去之後的計數要另外算——那種情況勘查完進去再數一次。</li>
+    <li><b>護欄不是萬能。</b>它擋 <kbd>Enter</kbd>、<kbd>Space</kbd> 和點擊落在送出類按鈕上的情況，但擋不掉網站自己用 JavaScript 觸發的送出。演練時還是別在真的能成立的活動上亂按。</li>
+    <li><b>它不會替你點。</b>沒有自動點擊、沒有排程送出、不讀也不送任何表單資料。所有東西都在你的瀏覽器裡跑完，不連任何伺服器。</li>
+  </ul>
+</div>
+
+<footer>
+配套工具：搶登記發射台（毫秒級發令倒數）。兩個一起用——倒數器解決「什麼時候按」，這個解決「按下去之後手要往哪走」。
+</footer>
+</div>
+<script>
+(function(){
+  const src = document.getElementById('src').textContent.trim();
+  // 書籤列小工具需要將整段程式碼編碼，避免瀏覽器解析錯誤
+  const url = 'javascript:' + encodeURIComponent(src);
+  const bm = document.querySelector('a.bm');
+  bm.setAttribute('href', url);
+
+  document.getElementById('cp').addEventListener('click', function(){
+    const t = this;
+    navigator.clipboard.writeText(url).then(function(){
+      t.textContent = '已複製'; 
+      setTimeout(function(){ t.textContent = '複製書籤網址'; }, 1600);
+    }, function(){ 
+      t.textContent = '複製失敗，請手動選取下方原始碼'; 
+    });
+  });
+})();
+</script>
+</body>
+</html>

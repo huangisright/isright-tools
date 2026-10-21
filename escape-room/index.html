@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0b131a">
+<meta name="description" content="氣候變遷主題數位密室逃脫">
+<title>數位密室逃脫 — 氣候變遷與失落黃金城</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>&#128273;</text></svg>">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="game-container">
+
+  <header>
+    <h1>失落黃金城</h1>
+    <div class="meta-bar">
+      <span id="team-label" class="meta-item hidden"></span>
+      <span id="level-label" class="meta-item hidden"></span>
+    </div>
+  </header>
+
+  <!-- ===== 訊息區：放在所有畫面之外，任何狀況都看得見 ===== -->
+  <section id="feedback" class="feedback-message hidden" role="status" aria-live="polite"></section>
+
+  <!-- ===== 畫面一：輸入組別代碼 ===== -->
+  <section id="screen-entry" class="screen hidden">
+    <p class="lead">歡迎來到失落黃金城的入口。<br>請輸入老師給你們這一組的<strong>組別代碼</strong>。</p>
+    <div class="input-group">
+      <input type="text" id="team-input" placeholder="例如 G1" autocomplete="off"
+             autocapitalize="characters" spellcheck="false" maxlength="16"
+             aria-label="組別代碼">
+      <button id="start-btn" class="btn primary-btn">進入</button>
+    </div>
+    <p class="note">同一組可以用好幾台裝置登入同一個代碼，進度與時間是共用的。</p>
+  </section>
+
+  <!-- ===== 畫面二：準備開始本關 ===== -->
+  <section id="screen-ready" class="screen hidden">
+    <div class="ready-box">
+      <p class="ready-level">第 <span id="ready-index">-</span> 關</p>
+      <p class="lead">按下開始之後，<strong id="ready-limit">15</strong> 分鐘倒數就會啟動，<br>中途重新整理或換裝置<strong>都不會重新計時</strong>。</p>
+      <p class="note">確認全組都準備好了再按。</p>
+      <button id="begin-btn" class="btn primary-btn wide">開始本關</button>
+    </div>
+  </section>
+
+  <!-- ===== 畫面三：解謎中 ===== -->
+  <main id="screen-game" class="screen hidden">
+
+    <div id="timer" class="timer">
+      <div class="timer-row">
+        <span class="timer-caption">剩餘時間</span>
+        <span id="timer-text" class="timer-text" aria-live="off">--:--</span>
+      </div>
+      <div class="timer-track"><div id="timer-fill" class="timer-fill"></div></div>
+    </div>
+
+    <section class="story-section">
+      <p id="story-text" class="story-text"></p>
+      <p id="author-line" class="author-line hidden"></p>
+    </section>
+
+    <section class="image-section">
+      <img id="clue-image" alt="線索圖片" hidden>
+    </section>
+
+    <section class="interaction-section">
+      <div class="input-group">
+        <input type="text" id="answer-input" placeholder="請輸入解謎密碼…" autocomplete="off"
+               autocapitalize="characters" spellcheck="false" aria-label="解謎密碼">
+        <button id="submit-btn" class="btn primary-btn">驗證</button>
+      </div>
+      <div class="actions">
+        <button id="hint-btn" class="btn secondary-btn">
+          獲取提示<span id="hint-count" class="badge hidden"></span>
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===== 畫面四：逾時 ===== -->
+  <section id="screen-timeout" class="screen hidden">
+    <div class="ready-box">
+      <p class="timeout-title">⏱ 時間到</p>
+      <p class="lead">第 <span id="timeout-level">-</span> 關沒有在時限內解開。</p>
+      <button id="skip-btn" class="btn primary-btn wide hidden">前往下一關</button>
+      <p id="timeout-note" class="note"></p>
+    </div>
+  </section>
+
+  <!-- ===== 畫面五：全部完成 ===== -->
+  <section id="screen-finish" class="screen hidden">
+    <div class="ready-box">
+      <p class="finish-title">🏆 黃金城的大門開了</p>
+      <p class="lead">你們完成了全部關卡。</p>
+      <div id="finish-stats" class="stats"></div>
+    </div>
+  </section>
+
+  <div id="loading" class="loading hidden">
+    <div class="spinner"></div>
+    <p id="loading-text">與黃金城終端機連線中…</p>
+  </div>
+
+</div>
+
+<!-- ===== 提示彈窗 ===== -->
+<div id="hint-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="hint-title">
+  <div class="modal-content">
+    <button class="close-btn" id="close-modal" aria-label="關閉提示">&times;</button>
+    <h2 id="hint-title">系統提示</h2>
+    <p id="hint-text" class="story-text"></p>
+    <p id="hint-penalty" class="note hidden"></p>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

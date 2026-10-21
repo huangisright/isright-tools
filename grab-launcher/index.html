@@ -1,0 +1,884 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>搶登記發射台</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chivo+Mono:wght@400;600;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<style>
+/* ============ tokens : light (base) ============ */
+:root{
+  --bg:#EDF1F0; --panel:#FFFFFF; --panel-2:#F5F8F7; --line:#D2DCDA; --line-soft:#E3EAE9;
+  --ink:#0E1A1C; --ink-2:#3D4F52; --ink-3:#6D8083;
+  --accent:#0C8B85; --accent-soft:#D6EFED;
+  --amber:#B07708; --green:#17904B; --red:#CE3628;
+  --lamp-off:#CDD7D6; --readout-bg:#0E1416; --readout-ink:#E8F2F1;
+  --shadow:0 1px 2px rgba(14,26,28,.06),0 8px 24px -12px rgba(14,26,28,.18);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0B1113; --panel:#141C1E; --panel-2:#101719; --line:#263335; --line-soft:#1D282A;
+    --ink:#E4EDEC; --ink-2:#A9BCBB; --ink-3:#7A8E8E;
+    --accent:#3FD0C9; --accent-soft:#12302F;
+    --amber:#F2B23E; --green:#43D07B; --red:#FF6152;
+    --lamp-off:#232F31; --readout-bg:#080D0E; --readout-ink:#E8F2F1;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 12px 32px -16px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0B1113; --panel:#141C1E; --panel-2:#101719; --line:#263335; --line-soft:#1D282A;
+  --ink:#E4EDEC; --ink-2:#A9BCBB; --ink-3:#7A8E8E;
+  --accent:#3FD0C9; --accent-soft:#12302F;
+  --amber:#F2B23E; --green:#43D07B; --red:#FF6152;
+  --lamp-off:#232F31; --readout-bg:#080D0E; --readout-ink:#E8F2F1;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 12px 32px -16px rgba(0,0,0,.8);
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:"IBM Plex Sans","Noto Sans TC",system-ui,-apple-system,"Helvetica Neue",sans-serif;
+  font-size:15px; line-height:1.6; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1080px;margin:0 auto;padding:28px 20px 72px}
+
+/* ============ masthead ============ */
+.mast{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:22px}
+.mast h1{
+  font-family:"Chivo Mono","IBM Plex Sans",monospace; font-weight:800;
+  font-size:clamp(20px,3vw,26px); letter-spacing:-.02em; margin:0; text-wrap:balance;
+}
+.mast .sub{color:var(--ink-3);font-size:13px}
+.mast .spacer{flex:1}
+.themebtn{
+  background:transparent;border:1px solid var(--line);color:var(--ink-2);
+  border-radius:999px;padding:5px 12px;font:inherit;font-size:12px;cursor:pointer;
+}
+.themebtn:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ============ generic module ============ */
+.mod{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px;box-shadow:var(--shadow)}
+.eyebrow{
+  font-size:10.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink-3);margin:0 0 10px;display:flex;align-items:center;gap:8px;
+}
+.eyebrow .dot{width:5px;height:5px;border-radius:50%;background:var(--accent);flex:none}
+.grid{display:flex;flex-direction:column;gap:14px;align-items:stretch}
+.col{display:flex;flex-direction:column;gap:14px;min-width:0;flex:1}
+@media(min-width:820px){.grid{flex-direction:row;align-items:flex-start}}
+
+/* ============ readout module ============ */
+.deck{background:var(--readout-bg);border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:var(--shadow);margin-bottom:14px}
+.gantry{display:flex;gap:10px;justify-content:center;padding:16px 16px 6px}
+.lamp{
+  width:clamp(34px,7vw,54px);height:clamp(34px,7vw,54px);border-radius:50%;
+  background:#1B2426;border:2px solid rgba(255,255,255,.06);
+  transition:background .06s linear, box-shadow .06s linear;
+}
+.lamp.on{background:#FF3B2F;box-shadow:0 0 18px 2px rgba(255,59,47,.55),inset 0 -6px 12px rgba(0,0,0,.35)}
+
+.readout{padding:2px 16px 20px;text-align:center;color:var(--readout-ink)}
+.rstate{
+  font-size:11px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;
+  color:#8DA0A0;margin-bottom:2px;
+}
+.rbig{
+  font-family:"Chivo Mono",monospace;font-weight:800;
+  font-size:clamp(52px,15vw,132px);line-height:.92;letter-spacing:-.04em;
+  font-variant-numeric:tabular-nums;display:block;
+}
+.rbig .ms{font-size:.42em;font-weight:600;letter-spacing:-.01em;color:#7E9695;margin-left:.06em}
+.rsub{font-family:"Chivo Mono",monospace;font-size:12.5px;color:#7E9695;font-variant-numeric:tabular-nums;margin-top:6px}
+.deck[data-phase="go"]{background:#0A2A16;border-color:var(--green)}
+.deck[data-phase="go"] .rbig{color:#5BF08F}
+.deck[data-phase="go"] .rstate{color:#5BF08F}
+.deck[data-phase="late"]{background:#2B0F0C}
+.deck[data-phase="late"] .rbig{color:#FF8A7E}
+.deck[data-phase="late"] .rstate{color:#FF8A7E}
+.deck[data-phase="armed"] .rbig{color:#FFD489}
+
+.statrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));border-top:1px solid rgba(255,255,255,.08)}
+.stat{padding:10px 14px;border-right:1px solid rgba(255,255,255,.08)}
+.stat:last-child{border-right:0}
+.stat .k{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#6F8483}
+.stat .v{font-family:"Chivo Mono",monospace;font-size:14px;color:#D6E4E3;font-variant-numeric:tabular-nums}
+.stat .v.warn{color:#F2B23E}
+.stat .v.bad{color:#FF6152}
+.stat .v.ok{color:#43D07B}
+
+/* ============ controls ============ */
+label{display:block;font-size:12px;color:var(--ink-2);font-weight:500;margin-bottom:4px}
+input[type=text],input[type=number],input[type=datetime-local],select{
+  width:100%;background:var(--panel-2);border:1px solid var(--line);color:var(--ink);
+  border-radius:7px;padding:8px 10px;font:inherit;font-size:14px;
+  font-variant-numeric:tabular-nums;
+}
+input:focus-visible,select:focus-visible,button:focus-visible,summary:focus-visible{
+  outline:2px solid var(--accent);outline-offset:2px;
+}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.row>*{flex:1 1 120px;min-width:0}
+.row.tight{gap:8px}
+button{
+  background:var(--panel-2);border:1px solid var(--line);color:var(--ink);
+  border-radius:7px;padding:8px 14px;font:inherit;font-size:13px;font-weight:500;cursor:pointer;
+  transition:border-color .12s,color .12s,background .12s;
+}
+button:hover{border-color:var(--accent);color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:#04201F;font-weight:600}
+:root[data-theme="light"] button.primary,:root:not([data-theme="dark"]) button.primary{color:#fff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) button.primary{color:#04201F}}
+:root[data-theme="dark"] button.primary{color:#04201F}
+button.primary:hover{filter:brightness(1.08);color:inherit}
+button.ghost{background:transparent}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap}
+.btnrow button{flex:0 0 auto}
+.hint{font-size:12px;color:var(--ink-3);margin:8px 0 0}
+.hint code{font-family:"Chivo Mono",monospace;font-size:11.5px;background:var(--panel-2);padding:1px 5px;border-radius:4px;border:1px solid var(--line-soft)}
+.mono{font-family:"Chivo Mono",monospace;font-variant-numeric:tabular-nums}
+
+.seg{display:flex;border:1px solid var(--line);border-radius:7px;overflow:hidden;margin-bottom:12px}
+.seg button{flex:1;border:0;border-radius:0;background:transparent;padding:7px 6px;font-size:12.5px;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button[aria-selected="true"]{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.pane[hidden]{display:none}
+
+input[type=range]{width:100%;accent-color:var(--accent)}
+
+.formula{border:1px solid var(--line-soft);border-radius:8px;background:var(--panel-2);overflow:hidden}
+.frow{display:grid;grid-template-columns:82px 84px 1fr;align-items:baseline;gap:10px;padding:7px 12px;border-bottom:1px solid var(--line-soft)}
+.frow:last-child{border-bottom:0}
+.frow .fk{font-size:12px;color:var(--ink-2)}
+.frow .fv{font-family:"Chivo Mono",monospace;font-size:14px;font-variant-numeric:tabular-nums;text-align:right;color:var(--ink)}
+.frow .fn{font-size:11.5px;color:var(--ink-3);line-height:1.4}
+.frow.sum{background:var(--accent-soft);border-top:1px solid var(--line)}
+.frow.sum .fk{color:var(--accent);font-weight:600}
+.frow.sum .fv{color:var(--accent);font-weight:700}
+.frow.sum .fn{color:var(--ink-2)}
+
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--ink-3)}
+.badge b{font-family:"Chivo Mono",monospace;font-weight:600}
+.badge.ok{color:var(--green);border-color:var(--green)}
+.badge.warn{color:var(--amber);border-color:var(--amber)}
+.badge.bad{color:var(--red);border-color:var(--red)}
+
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line-soft)}
+th{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+td.n{font-family:"Chivo Mono",monospace;font-variant-numeric:tabular-nums;text-align:right}
+.tblwrap{overflow-x:auto}
+
+ol.check{margin:0;padding-left:0;list-style:none;counter-reset:c}
+ol.check li{position:relative;padding:8px 0 8px 30px;border-bottom:1px solid var(--line-soft);font-size:13.5px;color:var(--ink-2)}
+ol.check li:last-child{border-bottom:0}
+ol.check li::before{
+  counter-increment:c;content:counter(c,decimal-leading-zero);
+  position:absolute;left:0;top:9px;font-family:"Chivo Mono",monospace;font-size:11px;color:var(--accent);font-weight:600;
+}
+ol.check strong{color:var(--ink);font-weight:600}
+
+.tapzone{
+  border:1px dashed var(--line);border-radius:8px;background:var(--panel-2);
+  padding:22px 12px;text-align:center;cursor:pointer;user-select:none;
+}
+.tapzone:hover{border-color:var(--accent)}
+.tapzone .big{font-family:"Chivo Mono",monospace;font-size:22px;font-weight:700}
+.tapzone .lbl{font-size:12px;color:var(--ink-3);margin-top:4px}
+.tapzone[data-live="1"]{border-style:solid;border-color:var(--amber);background:var(--panel)}
+.tapzone[data-live="go"]{border-color:var(--green);background:var(--green);color:#04201F}
+.tapzone[data-live="go"] .lbl{color:#04201F}
+
+footer{margin-top:26px;padding-top:16px;border-top:1px solid var(--line);font-size:12px;color:var(--ink-3)}
+footer a{color:var(--accent)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="mast">
+    <h1>搶登記發射台</h1>
+    <span class="sub">校準時鐘 · 補償反應 · 只在該按的那一刻叫你按</span>
+    <span class="spacer"></span>
+    <button class="themebtn" id="themebtn" type="button">切換深淺色</button>
+  </div>
+
+  <!-- ======== READOUT ======== -->
+  <div class="deck" id="deck" data-phase="idle">
+    <div class="gantry" id="gantry">
+      <div class="lamp"></div><div class="lamp"></div><div class="lamp"></div><div class="lamp"></div><div class="lamp"></div>
+    </div>
+    <div class="readout">
+      <div class="rstate" id="rstate">待機</div>
+      <span class="rbig" id="rbig">--:--<span class="ms">.---</span></span>
+      <div class="rsub" id="rsub">尚未設定目標時間</div>
+    </div>
+    <div class="statrow">
+      <div class="stat"><div class="k">校時誤差</div><div class="v" id="sOffset">未校時</div></div>
+      <div class="stat"><div class="k">發令偏移</div><div class="v" id="sLead">—</div></div>
+      <div class="stat"><div class="k">開放時刻 T0</div><div class="v" id="sTarget">—</div></div>
+      <div class="stat"><div class="k">發令時刻</div><div class="v" id="sGo">—</div></div>
+    </div>
+  </div>
+
+  <div class="btnrow" style="margin-bottom:18px">
+    <button type="button" class="primary" id="btnArm">啟動倒數</button>
+    <button type="button" id="btnStop">停止</button>
+    <button type="button" id="btnSound">啟用聲音</button>
+    <button type="button" id="btnPip">浮動視窗</button>
+    <button type="button" id="btnDrill">練習：10 秒後發令</button>
+  </div>
+
+  <div class="grid cols2">
+   <div class="col">
+
+    <!-- ======== TARGET ======== -->
+    <section class="mod">
+      <p class="eyebrow"><span class="dot"></span>目標時間</p>
+      <div class="row">
+        <div style="flex:2 1 200px">
+          <label for="dt">開放時刻（本地時間）</label>
+          <input type="datetime-local" id="dt" step="1">
+        </div>
+        <div style="flex:0 1 100px">
+          <label for="msIn">毫秒</label>
+          <input type="number" id="msIn" value="0" min="0" max="999" step="1">
+        </div>
+      </div>
+      <div class="btnrow" style="margin-top:10px">
+        <button type="button" data-quick="0">整點 00:00</button>
+        <button type="button" data-quick="12">中午 12:00</button>
+        <button type="button" data-quick="next">下一個整點</button>
+      </div>
+      <p class="hint">多數活動寫「上午 <code>00:00</code> 開放」指的是那一天的零時零分零秒。若公告只到分鐘，毫秒留 <code>0</code> 即可。</p>
+
+      <div style="margin-top:14px">
+        <label for="presetName">存成常用活動</label>
+        <div class="row tight">
+          <input type="text" id="presetName" placeholder="例如：某銀行行動支付登記">
+          <button type="button" id="btnSave" style="flex:0 0 auto">儲存</button>
+        </div>
+        <div class="tblwrap" style="margin-top:8px"><table id="presetTbl"><tbody></tbody></table></div>
+      </div>
+    </section>
+
+    <!-- ======== CALIBRATION ======== -->
+    <section class="mod">
+      <p class="eyebrow"><span class="dot"></span>校時</p>
+      <div class="seg" role="tablist">
+        <button type="button" role="tab" data-pane="p-auto" aria-selected="true">自動連線</button>
+        <button type="button" role="tab" data-pane="p-tap" aria-selected="false">跟著跳秒點</button>
+        <button type="button" role="tab" data-pane="p-man" aria-selected="false">直接輸入</button>
+      </div>
+
+      <div class="pane" id="p-auto">
+        <p class="hint" style="margin-top:0">向公開時間伺服器取樣多次，取來回延遲最小的一次估算偏差。瀏覽器擋掉連線時會失敗，改用另外兩種方式。</p>
+        <div class="btnrow" style="margin-top:10px"><button type="button" id="btnAuto">開始取樣</button></div>
+        <div id="autoLog" class="hint mono"></div>
+      </div>
+
+      <div class="pane" id="p-tap" hidden>
+        <p class="hint" style="margin-top:0">另開
+          <a href="https://time.stdtime.gov.tw/" target="_blank" rel="noopener">國家時間與頻率標準實驗室</a> 或
+          <a href="https://time.is/" target="_blank" rel="noopener">time.is</a>，
+          盯著秒數跳動，在每次跳秒的瞬間敲一下。敲 6 次以上取中位數。
+        </p>
+        <div class="tapzone" id="tapzone" tabindex="0" role="button">
+          <div class="big" id="tapCount">0 / 6</div>
+          <div class="lbl">點這裡或按空白鍵</div>
+        </div>
+        <div class="row tight" style="margin-top:10px">
+          <button type="button" id="btnTapApply">套用</button>
+          <button type="button" class="ghost" id="btnTapReset">清除</button>
+        </div>
+        <div id="tapLog" class="hint mono"></div>
+      </div>
+
+      <div class="pane" id="p-man" hidden>
+        <label for="manOff">時鐘偏差（毫秒，正值＝電腦比標準時間快）</label>
+        <div class="row tight">
+          <input type="number" id="manOff" value="0" step="1">
+          <button type="button" id="btnManApply" style="flex:0 0 auto">套用</button>
+        </div>
+        <p class="hint">Mac 開啟「自動設定日期與時間」時通常已在 ±30 毫秒內，可留 0。</p>
+      </div>
+    </section>
+
+    <!-- ======== TIMING MODEL ======== -->
+    <section class="mod">
+      <p class="eyebrow"><span class="dot"></span>發令時序</p>
+      <p class="hint" style="margin-top:0">
+        目標不是「在 <span class="mono">T0</span> 按下刷新」，而是「讓刷新的請求剛好在 <span class="mono">T0</span> 之後一點點抵達伺服器」。
+        太早到，按鈕還是灰的，白刷一次。
+      </p>
+
+      <div class="formula" id="formula">
+        <div class="frow"><span class="fk">安全裕度</span><span class="fv" id="fMargin">+120</span><span class="fn">請求要在 T0 之後多久抵達</span></div>
+        <div class="frow"><span class="fk">單程延遲</span><span class="fv" id="fOne">−15</span><span class="fn">你到網站來回延遲的一半</span></div>
+        <div class="frow"><span class="fk">反應時間</span><span class="fv" id="fRt">−220</span><span class="fn">從聽到提示到手指按下去</span></div>
+        <div class="frow sum"><span class="fk">發令提示</span><span class="fv" id="fCue">T0 −115</span><span class="fn">倒數器叫你按的時刻</span></div>
+      </div>
+
+      <div class="row tight" style="margin-top:12px">
+        <div><label for="marginNum">安全裕度（ms）</label><input type="number" id="marginNum" value="120" step="10" min="0" max="1000"></div>
+        <div><label for="rttNum">網站來回延遲（ms）</label><input type="number" id="rttNum" value="30" step="5" min="0" max="2000"></div>
+      </div>
+      <div class="row tight" style="margin-top:8px">
+        <input type="text" id="probeUrl" value="https://ecvip.pchome.com.tw/favicon.ico" spellcheck="false">
+        <button type="button" id="btnProbe" style="flex:0 0 auto">量測延遲</button>
+      </div>
+      <div id="probeLog" class="hint mono"></div>
+
+      <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--line-soft)">
+        <p class="eyebrow" style="margin-bottom:8px"><span class="dot"></span>量你的反應時間</p>
+        <div class="tapzone" id="rtzone" tabindex="0" role="button">
+          <div class="big" id="rtBig">按這裡開始</div>
+          <div class="lbl" id="rtLbl">燈亮就馬上按空白鍵，共 5 次</div>
+        </div>
+        <div id="rtLog" class="hint mono"></div>
+      </div>
+    </section>
+
+   </div>
+
+   <div class="col">
+    <!-- ======== DRILL ======== -->
+    <section class="mod">
+      <p class="eyebrow"><span class="dot"></span>三步驟演練</p>
+      <p class="hint" style="margin-top:0">
+        照你描述的流程跑一遍：發令後按空白鍵當作「刷新」，畫面跳出下一步再按一次當作「登記」，最後一次當作「確定」。
+        測完你會知道整套要花幾秒，以及卡在哪一步。
+      </p>
+      <div class="btnrow" style="margin:12px 0">
+        <button type="button" class="primary" id="btnDrill3">開始演練</button>
+        <button type="button" class="ghost" id="btnDrillReset">清除紀錄</button>
+      </div>
+      <div class="tapzone" id="drillzone" tabindex="0" role="button">
+        <div class="big" id="drillBig">待機</div>
+        <div class="lbl" id="drillLbl">按上面的「開始演練」</div>
+      </div>
+      <div class="tblwrap" style="margin-top:10px">
+        <table id="drillTbl">
+          <thead><tr><th>步驟</th><th style="text-align:right">相對 T0</th><th style="text-align:right">間隔</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p class="hint" id="drillNote"></p>
+    </section>
+
+    <!-- ======== CHECKLIST ======== -->
+    <section class="mod">
+      <p class="eyebrow"><span class="dot"></span>開跑前十分鐘</p>
+      <ol class="check">
+        <li><strong>先確認到底要不要搶。</strong>信用卡活動很多是「活動期間內登記皆可」，期限內登記就算數。真正限量的才會寫「限前 N 名」或「限量 N 名額」。</li>
+        <li><strong>確認需不需要刷新。</strong>有些頁面自己有前端倒數，時間一到按鈕就會自動變成可按，這種情況刷新反而害你重新載入。開跑前先在頁面上找找有沒有跑動的倒數字樣。</li>
+        <li><strong>確認是不是排隊制。</strong>若看到等候室或排隊號碼，順位通常按「進入佇列的先後」，到點狂刷會把你踢回隊尾。這種站要提早進場然後不要動。</li>
+        <li><strong>用 <code>⌘R</code> 而不是滑鼠。</strong>鍵盤沒有移動游標和瞄準的時間，而且手可以預先停在鍵上。</li>
+        <li><strong>第二步和第三步用鍵盤走完。</strong>頁面載入後按 <code>Tab</code> 到按鈕、<code>Enter</code> 送出，比找滑鼠快。演練時先確認要按幾次 Tab。</li>
+        <li><strong>先登入並確認不會過期。</strong>提早太久登入可能被登出，開跑前 5 分鐘重新整理一次確認仍在登入狀態。</li>
+        <li><strong>該填的欄位先填好。</strong>卡號末四碼、手機、驗證選項先選定，讓最後只剩點擊動作。</li>
+        <li><strong>關掉會搶頻寬和 CPU 的東西。</strong>雲端同步、串流、大型下載，以及其他吃資源的分頁。</li>
+        <li><strong>用有線網路或靠近路由器。</strong>Wi-Fi 抖動常常就是那 100 毫秒的差別。</li>
+        <li><strong>不要提前狂刷。</strong>短時間大量請求容易觸發流量保護，換來驗證碼或暫時封鎖，反而更慢。開跑前最後一次刷新抓在 T0 前 30 秒左右。</li>
+        <li><strong>準備第二裝置。</strong>手機用行動網路開同一頁，兩條路徑分散風險。</li>
+        <li><strong>倒數期間不要切分頁。</strong>瀏覽器會降低背景分頁的更新頻率；用上面的浮動視窗把倒數壓在登記頁上方。</li>
+      </ol>
+    </section>
+   </div>
+  </div>
+
+  <footer>
+    這個工具只負責報時。它不會替你連線、填表或送出任何東西——最後那一下永遠是你自己按。<br>
+    使用範圍限定在購物網站與信用卡的活動登記。藝文表演票券另受《文化創意產業發展法》第 10 條之 1 第 3 項規範（以不正方式利用電腦購買票券，三年以下有期徒刑），且該項不以轉售牟利為構成要件，因此本工具不往售票網站延伸。
+  </footer>
+</div>
+
+<script>
+"use strict";
+(function(){
+/* ---------------- storage (guarded) ---------------- */
+const mem={};
+const store={
+  get(k){ try{ const v=localStorage.getItem(k); return v===null?(k in mem?mem[k]:null):v; }catch(e){ return (k in mem)?mem[k]:null; } },
+  set(k,v){ mem[k]=v; try{ localStorage.setItem(k,v); }catch(e){} }
+};
+
+/* ---------------- clock model ---------------- */
+// wall(ms) = performance.now() + perfBase + offset
+let perfBase = performance.timeOrigin || (Date.now() - performance.now());
+let offset = 0;              // correction, ms
+let uncertainty = null;      // ± ms
+function now(){ return performance.now() + perfBase + offset; }
+function reanchor(){ if(!performance.timeOrigin){ const p=performance.now(), d=Date.now(); perfBase = d - p; } }
+
+const $ = s=>document.querySelector(s);
+const $$ = s=>Array.from(document.querySelectorAll(s));
+
+/* ---------------- theme ---------------- */
+const savedTheme = store.get('lt_theme');
+if(savedTheme) document.documentElement.setAttribute('data-theme',savedTheme);
+$('#themebtn').addEventListener('click',()=>{
+  const cur=document.documentElement.getAttribute('data-theme');
+  const sysDark = matchMedia('(prefers-color-scheme:dark)').matches;
+  const next = cur ? (cur==='dark'?'light':'dark') : (sysDark?'light':'dark');
+  document.documentElement.setAttribute('data-theme',next);
+  store.set('lt_theme',next);
+});
+
+/* ---------------- audio ---------------- */
+let ac=null, audioOn=false;
+function initAudio(){
+  if(!ac){ try{ ac = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ $('#btnSound').textContent='音效不支援'; return false; } }
+  if(ac.state==='suspended') ac.resume();
+  audioOn = true;
+  $('#btnSound').textContent='聲音已開';
+  beepAt(ac.currentTime+0.02,880,0.06,0.25);
+  return true;
+}
+$('#btnSound').addEventListener('click',initAudio);
+
+function beepAt(t,freq,dur,gain){
+  if(!ac) return;
+  const o=ac.createOscillator(), g=ac.createGain();
+  o.type='square'; o.frequency.value=freq;
+  g.gain.setValueAtTime(0,t);
+  g.gain.linearRampToValueAtTime(gain,t+0.004);
+  g.gain.setValueAtTime(gain,t+dur*0.7);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  o.connect(g); g.connect(ac.destination);
+  o.start(t); o.stop(t+dur+0.02);
+}
+// map a wall-clock ms to AudioContext seconds
+function acTimeFor(wallMs){
+  let best=null;
+  for(let i=0;i<3;i++){
+    const p=performance.now(), a=ac.currentTime;
+    const w = p + perfBase + offset;
+    const cand = a + (wallMs - w)/1000;
+    if(best===null||cand<best) best=cand;
+  }
+  const lat = (ac.outputLatency||ac.baseLatency||0);
+  return best - lat;
+}
+
+/* ---------------- target / lead ---------------- */
+let targetWall=null, armed=false, scheduled=false;
+let rtMedian  = +(store.get('lt_rt')||220);      // 反應時間
+let safety    = +(store.get('lt_margin')||120);  // 安全裕度：請求要在 T0 之後多久抵達
+let rttMs     = +(store.get('lt_rtt')||30);      // 到目標網站的來回延遲
+let lead      = 0;                                // 發令提示比 T0 早多少（可為負）
+
+const sgn = n => (n>=0?'+':'−')+Math.abs(Math.round(n));
+
+function recompute(){
+  const oneWay = rttMs/2;
+  // 按鍵時刻（相對 T0）＝ 安全裕度 − 單程延遲
+  const press = safety - oneWay;
+  // 發令提示（相對 T0）＝ 按鍵時刻 − 反應時間；lead 為「提早多少」故取負號
+  lead = Math.round(rtMedian - press);
+
+  $('#fMargin').textContent = sgn(safety);
+  $('#fOne').textContent    = sgn(-oneWay);
+  $('#fRt').textContent     = sgn(-rtMedian);
+  $('#fCue').textContent    = 'T0 '+(lead>=0?'−':'+')+Math.abs(lead);
+  $('#sLead').textContent   = 'T0 '+(lead>=0?'−':'+')+Math.abs(lead)+' ms';
+  $('#marginNum').value = safety;
+  $('#rttNum').value = rttMs;
+  store.set('lt_margin',String(safety));
+  store.set('lt_rtt',String(rttMs));
+  paintStats();
+}
+$('#marginNum').addEventListener('input',e=>{ safety=Math.max(0,Math.min(1000,+e.target.value||0)); recompute(); });
+$('#rttNum').addEventListener('input',e=>{ rttMs=Math.max(0,Math.min(2000,+e.target.value||0)); recompute(); });
+
+/* latency probe: one cache-busted image request to the target host */
+$('#btnProbe').addEventListener('click',async()=>{
+  const url=$('#probeUrl').value.trim(), log=$('#probeLog');
+  if(!/^https?:\/\//.test(url)){ log.textContent='請填完整網址，例如 https://…/favicon.ico'; return; }
+  $('#btnProbe').disabled=true; log.textContent='量測中…';
+  const times=[];
+  for(let i=0;i<5;i++){
+    const t = await new Promise(res=>{
+      const t0=performance.now(); const img=new Image(); let done=false;
+      const fin=ok=>{ if(done)return; done=true; res({ms:performance.now()-t0, ok:!!ok&&img.naturalWidth>0}); };
+      img.onload=()=>fin(true); img.onerror=()=>fin(false);
+      setTimeout(()=>fin(false),4000);
+      img.src=url+(url.includes('?')?'&':'?')+'_='+t0.toFixed(0)+Math.random().toString(36).slice(2);
+    });
+    times.push(t);
+    await new Promise(r=>setTimeout(r,220));
+  }
+  $('#btnProbe').disabled=false;
+  const okCount = times.filter(x=>x.ok).length;
+  if(!okCount){ log.textContent='這個網址沒有回傳圖片，量到的只是失敗時間，不能採用。\n換一個該網站確實存在的圖片網址（例如網頁上任一張圖），或直接手動填延遲值。'; log.style.whiteSpace='pre-line'; return; }
+  const good = times.filter(x=>x.ok).map(x=>x.ms).sort((a,b)=>a-b);
+  const best=good[0], med=good[Math.floor(good.length/2)];
+  rttMs = Math.round(best);
+  log.textContent='成功 '+okCount+' / 5 次：'+good.map(x=>x.toFixed(0)).join(', ')+' ms\n採用最小值 '+rttMs+' ms（中位數 '+med.toFixed(0)+'）。首次連線含 DNS 與 TLS 握手會偏高，實際刷新時通常更快。';
+  log.style.whiteSpace='pre-line';
+  recompute();
+});
+
+function readTarget(){
+  const v=$('#dt').value;
+  if(!v) return null;
+  const d=new Date(v);
+  if(isNaN(d)) return null;
+  return d.getTime() + (parseInt($('#msIn').value,10)||0);
+}
+function fmtClock(ms){
+  const d=new Date(ms);
+  const p=n=>String(n).padStart(2,'0');
+  return p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds())+'.'+String(d.getMilliseconds()).padStart(3,'0');
+}
+function fmtDay(ms){
+  const d=new Date(ms), p=n=>String(n).padStart(2,'0');
+  return (d.getMonth()+1)+'/'+d.getDate()+' '+p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());
+}
+function paintStats(){
+  const t=readTarget();
+  const sameDay = t && new Date(t).toDateString()===new Date(now()).toDateString();
+  const dp = ms => (sameDay?'':(new Date(ms).getMonth()+1)+'/'+new Date(ms).getDate()+' ')+fmtClock(ms);
+  $('#sTarget').textContent = t?dp(t):'—';
+  $('#sGo').textContent = t?dp(t-lead):'—';
+  const el=$('#sOffset');
+  if(uncertainty===null && offset===0){ el.textContent='未校時'; el.className='v warn'; }
+  else{
+    el.textContent = (offset>=0?'+':'')+offset.toFixed(0)+' ms'+(uncertainty!==null?' ±'+Math.round(uncertainty):'');
+    el.className='v '+((uncertainty!==null&&uncertainty>120)?'warn':'ok');
+  }
+}
+['#dt','#msIn'].forEach(s=>$(s).addEventListener('input',paintStats));
+
+$$('[data-quick]').forEach(b=>b.addEventListener('click',()=>{
+  const k=b.dataset.quick, d=new Date(now());
+  if(k==='next'){ d.setTime(d.getTime()+3600000); d.setMinutes(0,0,0); }
+  else { d.setDate(d.getDate()+(+k===0?1:0)); d.setHours(+k,0,0,0); }
+  const p=n=>String(n).padStart(2,'0');
+  $('#dt').value = d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());
+  $('#msIn').value=0; paintStats();
+}));
+
+/* ---------------- presets ---------------- */
+function loadPresets(){ try{ return JSON.parse(store.get('lt_presets')||'[]'); }catch(e){ return []; } }
+function savePresets(a){ store.set('lt_presets',JSON.stringify(a)); }
+function renderPresets(){
+  const tb=$('#presetTbl').querySelector('tbody'); tb.innerHTML='';
+  const arr=loadPresets();
+  if(!arr.length){ tb.innerHTML='<tr><td colspan="3" style="color:var(--ink-3);font-size:12px">尚未儲存任何活動</td></tr>'; return; }
+  arr.forEach((p,i)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML='<td></td><td class="n"></td><td style="width:80px;text-align:right"></td>';
+    tr.children[0].textContent=p.name;
+    tr.children[1].textContent=fmtDay(p.t);
+    const use=document.createElement('button'); use.textContent='帶入'; use.style.padding='3px 8px'; use.style.fontSize='12px';
+    use.addEventListener('click',()=>{
+      const d=new Date(p.t), q=n=>String(n).padStart(2,'0');
+      $('#dt').value=d.getFullYear()+'-'+q(d.getMonth()+1)+'-'+q(d.getDate())+'T'+q(d.getHours())+':'+q(d.getMinutes())+':'+q(d.getSeconds());
+      $('#msIn').value=d.getMilliseconds(); paintStats();
+    });
+    const del=document.createElement('button'); del.textContent='×'; del.className='ghost'; del.style.padding='3px 8px'; del.style.fontSize='12px'; del.style.marginLeft='4px';
+    del.addEventListener('click',()=>{ const a=loadPresets(); a.splice(i,1); savePresets(a); renderPresets(); });
+    tr.children[2].append(use,del);
+    tb.appendChild(tr);
+  });
+}
+$('#btnSave').addEventListener('click',()=>{
+  const t=readTarget(), n=$('#presetName').value.trim();
+  if(!t||!n){ $('#presetName').placeholder='請先填活動名稱與時間'; return; }
+  const a=loadPresets(); a.push({name:n,t:t}); savePresets(a); $('#presetName').value=''; renderPresets();
+});
+renderPresets();
+
+/* ---------------- calibration : tabs ---------------- */
+$$('[data-pane]').forEach(b=>b.addEventListener('click',()=>{
+  $$('[data-pane]').forEach(x=>{ x.setAttribute('aria-selected', x===b?'true':'false'); $('#'+x.dataset.pane).hidden = x!==b; });
+}));
+
+/* auto sync */
+const SOURCES=[
+  {n:'akamai', u:'https://time.akamai.com/?iso', p:async r=>Date.parse((await r.text()).trim())},
+  {n:'worldtimeapi', u:'https://worldtimeapi.org/api/timezone/Etc/UTC', p:async r=>Date.parse((await r.json()).utc_datetime)},
+  {n:'timeapi.io', u:'https://timeapi.io/api/Time/current/zone?timeZone=UTC', p:async r=>{const j=await r.json(); return Date.parse(j.dateTime+'Z');}}
+];
+$('#btnAuto').addEventListener('click',async()=>{
+  const log=$('#autoLog'); log.textContent='取樣中…';
+  reanchor();
+  const results=[]; const lines=[];
+  for(const s of SOURCES){
+    let okCount=0;
+    for(let i=0;i<3;i++){
+      const t0=performance.now();
+      try{
+        const r=await fetch(s.u+(s.u.includes('?')?'&':'?')+'_='+t0.toFixed(0),{cache:'no-store'});
+        const t1=performance.now();
+        const server=await s.p(r);
+        if(!server||isNaN(server)) throw new Error('parse');
+        const rtt=t1-t0;
+        const localAtT1 = t1 + perfBase;
+        results.push({rtt, off:(server+rtt/2)-localAtT1, n:s.n});
+        okCount++;
+      }catch(e){ break; }
+    }
+    lines.push(s.n+': '+(okCount?okCount+' 次成功':'連不上'));
+  }
+  if(!results.length){ log.textContent='三個來源都連不上（瀏覽器或網路擋掉了）。請改用「跟著跳秒點」。'; return; }
+  results.sort((a,b)=>a.rtt-b.rtt);
+  const best=results[0];
+  offset = Math.round(best.off); uncertainty = Math.round(best.rtt/2);
+  lines.push('採用 '+best.n+'：偏差 '+(offset>=0?'+':'')+offset+' ms，來回 '+Math.round(best.rtt)+' ms（誤差 ±'+uncertainty+'）');
+  log.textContent=lines.join('\n'); log.style.whiteSpace='pre-line';
+  $('#manOff').value = -offset;
+  paintStats();
+});
+
+/* tap sync */
+let taps=[];
+function median(a){ const s=[...a].sort((x,y)=>x-y); const m=s.length>>1; return s.length%2?s[m]:(s[m-1]+s[m])/2; }
+function doTap(){
+  reanchor();
+  const w = performance.now()+perfBase;   // uncalibrated wall
+  let frac = ((w % 1000)+1000)%1000;
+  let err = frac>500 ? frac-1000 : frac;  // how far past the whole second we tapped
+  taps.push(err);
+  $('#tapCount').textContent = taps.length+' / 6';
+  $('#tapLog').textContent = taps.map(x=>(x>=0?'+':'')+x.toFixed(0)).join('  ')+(taps.length>=3?'\n中位數 '+median(taps).toFixed(0)+' ms':'');
+  $('#tapLog').style.whiteSpace='pre-line';
+  const z=$('#tapzone'); z.dataset.live='1'; setTimeout(()=>z.removeAttribute('data-live'),120);
+  if(ac&&audioOn) beepAt(ac.currentTime+0.005,1200,0.03,0.2);
+}
+$('#tapzone').addEventListener('click',doTap);
+$('#btnTapReset').addEventListener('click',()=>{ taps=[]; $('#tapCount').textContent='0 / 6'; $('#tapLog').textContent=''; });
+$('#btnTapApply').addEventListener('click',()=>{
+  if(taps.length<3){ $('#tapLog').textContent='至少要敲 3 次'; return; }
+  offset = -Math.round(median(taps));
+  const spread = Math.max(...taps)-Math.min(...taps);
+  uncertainty = Math.round(spread/2);
+  $('#manOff').value = -offset;
+  $('#tapLog').textContent += '\n已套用：偏差 '+(offset>=0?'+':'')+offset+' ms（離散度 ±'+uncertainty+'）';
+  paintStats();
+});
+$('#btnManApply').addEventListener('click',()=>{
+  offset = -(parseFloat($('#manOff').value)||0);
+  uncertainty = 0; paintStats();
+});
+
+/* ---------------- reaction test ---------------- */
+let rtState='idle', rtT0=0, rtSamples=[], rtTimer=null;
+function rtStart(){
+  rtSamples=[]; $('#rtLog').textContent=''; rtNext();
+}
+function rtNext(){
+  if(rtSamples.length>=5){
+    rtMedian = Math.round(median(rtSamples));
+    store.set('lt_rt',String(rtMedian));
+    $('#rtBig').textContent = rtMedian+' ms';
+    $('#rtLbl').textContent = '中位數已套用到提前量';
+    $('#rtzone').removeAttribute('data-live');
+    recompute();
+    $('#rtLog').textContent = '五次：'+rtSamples.map(x=>x.toFixed(0)).join(', ')+' ms';
+    rtState='idle';
+    return;
+  }
+  rtState='wait';
+  $('#rtzone').removeAttribute('data-live');
+  $('#rtBig').textContent='準備…';
+  $('#rtLbl').textContent='第 '+(rtSamples.length+1)+' / 5 次，燈亮就按';
+  const delay = 1200 + Math.random()*2600;
+  rtTimer=setTimeout(()=>{
+    rtState='go'; rtT0=performance.now();
+    $('#rtzone').dataset.live='go';
+    $('#rtBig').textContent='按！'; $('#rtLbl').textContent='';
+    if(ac&&audioOn) beepAt(ac.currentTime+0.005,1600,0.08,0.3);
+  },delay);
+}
+function rtHit(){
+  if(rtState==='idle'){ rtStart(); return; }
+  if(rtState==='wait'){ clearTimeout(rtTimer); $('#rtBig').textContent='太早了'; $('#rtLbl').textContent='重來這一次'; setTimeout(rtNext,700); return; }
+  if(rtState==='go'){
+    rtSamples.push(performance.now()-rtT0);
+    $('#rtzone').removeAttribute('data-live');
+    $('#rtBig').textContent=rtSamples[rtSamples.length-1].toFixed(0)+' ms';
+    setTimeout(rtNext,600);
+  }
+}
+$('#rtzone').addEventListener('click',rtHit);
+
+document.addEventListener('keydown',e=>{
+  if(e.code!=='Space') return;
+  const a=document.activeElement;
+  if(a&&a.tagName==='INPUT'&&a.type!=='range') return;
+  if(drill){ e.preventDefault(); drillHit(); return; }
+  if(a===$('#tapzone')){ e.preventDefault(); doTap(); return; }
+  if(a===$('#rtzone')){ e.preventDefault(); rtHit(); return; }
+  if(a&&/TEXTAREA|BUTTON|SELECT/.test(a.tagName)) return;
+  if(!$('#p-tap').hidden){ e.preventDefault(); doTap(); }
+  else if(rtState!=='idle'){ e.preventDefault(); rtHit(); }
+});
+
+/* ---------------- countdown engine ---------------- */
+const deck=$('#deck'), lamps=$$('#gantry .lamp');
+function setLamps(k){ lamps.forEach((l,i)=>l.classList.toggle('on', i<k)); }
+
+function schedule(goWall){
+  if(!ac||!audioOn) return;
+  for(let s=5;s>=1;s--){
+    const t=acTimeFor(goWall - s*1000);
+    if(t>ac.currentTime+0.02) beepAt(t,880,0.07,0.22);
+  }
+  const g=acTimeFor(goWall);
+  if(g>ac.currentTime+0.02){ beepAt(g,1760,0.30,0.35); beepAt(g+0.001,1174,0.30,0.2); }
+  scheduled=true;
+}
+
+$('#btnArm').addEventListener('click',()=>{
+  const t=readTarget();
+  if(!t){ $('#rsub').textContent='請先設定目標時間'; return; }
+  if(!ac) initAudio();
+  targetWall=t; armed=true; scheduled=false; paintStats();
+});
+$('#btnStop').addEventListener('click',()=>{ armed=false; scheduled=false; setLamps(0); deck.dataset.phase='idle'; $('#rstate').textContent='待機'; });
+$('#btnDrill').addEventListener('click',()=>{
+  if(!ac) initAudio();
+  targetWall = now()+10000+lead; armed=true; scheduled=false;
+  $('#sTarget').textContent=fmtClock(targetWall); $('#sGo').textContent=fmtClock(targetWall-lead);
+});
+
+const origTitle = document.title;
+function frame(){
+  requestAnimationFrame(frame);
+  if(drill && drill.step===0){
+    const dz=$('#drillzone');
+    if(now() >= drill.t0 - lead){
+      if(dz.dataset.live!=='go'){ dz.dataset.live='go'; $('#drillBig').textContent='刷新！'; $('#drillLbl').textContent='按空白鍵'; }
+    }else dz.dataset.live='1';
+  }
+  const big=$('#rbig'), sub=$('#rsub'), st=$('#rstate');
+  if(!armed || targetWall===null){
+    big.innerHTML='--:--<span class="ms">.---</span>';
+    document.title = origTitle;
+    if(deck.dataset.phase!=='idle'){
+      deck.dataset.phase='idle'; setLamps(0);
+      st.textContent='待機';
+      sub.textContent = targetWall? '已停止 · 目標 '+fmtClock(targetWall) : '尚未設定目標時間';
+    }
+    return;
+  }
+  const goWall = targetWall - lead;
+  const rem = goWall - now();
+
+  if(!scheduled && rem<6500 && rem>0) schedule(goWall);
+
+  if(rem>0){
+    deck.dataset.phase = rem<5000 ? 'armed' : 'run';
+    st.textContent = rem<5000 ? '準備' : '倒數中';
+    const totalSec = rem/1000;
+    const mm=Math.floor(totalSec/60), ss=Math.floor(totalSec%60), ms=Math.floor(rem%1000);
+    const mmStr = mm>0 ? String(mm).padStart(2,'0')+':' : '';
+    const ssStr = String(ss).padStart(2,'0');
+    big.innerHTML = mmStr + ssStr + '<span class="ms">.'+String(ms).padStart(3,'0')+'</span>';
+    document.title = `(${mmStr}${ssStr}) ` + origTitle;
+    setLamps(rem<5000 ? 5-Math.floor(rem/1000) : 0);
+    sub.textContent = '距離目標 '+((targetWall-now())/1000).toFixed(2)+' 秒 · 發令 '+fmtClock(goWall);
+    if(document.hidden) sub.textContent='⚠︎ 分頁在背景，計時可能不準';
+  }else{
+    const past=-rem;
+    setLamps(0);
+    if(past<1500){ deck.dataset.phase='go'; st.textContent='送出'; big.innerHTML='GO'; sub.textContent='現在按'; document.title = '[ GO! ] ' + origTitle; }
+    else{ deck.dataset.phase='late'; st.textContent='已過'; big.innerHTML=(past/1000).toFixed(2)+'<span class="ms">s</span>'; sub.textContent='發令後經過時間'; document.title = origTitle; }
+  }
+}
+requestAnimationFrame(frame);
+
+/* ---------------- three-step drill ---------------- */
+const STEPS=['刷新頁面','按下登記','按下確定'];
+let drill=null;  // {t0, marks:[], step}
+function drillPaint(){
+  const tb=$('#drillTbl').querySelector('tbody'); tb.innerHTML='';
+  const marks = drill? drill.marks : (drillLast||[]);
+  if(!marks.length){ tb.innerHTML='<tr><td colspan="3" style="color:var(--ink-3);font-size:12px">尚無紀錄</td></tr>'; return; }
+  marks.forEach((m,i)=>{
+    const tr=document.createElement('tr');
+    const gap = i===0? m : m-marks[i-1];
+    tr.innerHTML='<td></td><td class="n"></td><td class="n"></td>';
+    tr.children[0].textContent=(i+1)+'. '+STEPS[i];
+    tr.children[1].textContent=(m>=0?'+':'−')+Math.abs(m).toFixed(0)+' ms';
+    tr.children[2].textContent='+'+gap.toFixed(0)+' ms';
+    tb.appendChild(tr);
+  });
+}
+let drillLast=null;
+try{ drillLast=JSON.parse(store.get('lt_drill')||'null'); }catch(e){}
+drillPaint();
+
+$('#btnDrillReset').addEventListener('click',()=>{ drillLast=null; store.set('lt_drill','null'); drill=null; drillPaint(); $('#drillNote').textContent=''; });
+
+$('#btnDrill3').addEventListener('click',()=>{
+  if(!ac) initAudio();
+  const t0 = now()+8000;
+  drill={t0:t0, marks:[], step:0};
+  targetWall=t0; armed=true; scheduled=false;
+  $('#drillBig').textContent='等發令'; $('#drillLbl').textContent='聽到長音就按空白鍵';
+  $('#drillNote').textContent='';
+  paintStats(); drillPaint();
+});
+
+function drillHit(){
+  if(!drill) return false;
+  const d = now()-drill.t0;
+  if(d < -1500){ $('#drillBig').textContent='太早了'; $('#drillLbl').textContent='等提示音'; return true; }
+  drill.marks.push(d);
+  drill.step++;
+  if(ac&&audioOn) beepAt(ac.currentTime+0.005,1000+drill.step*200,0.05,0.25);
+  const dz=$('#drillzone');
+  if(drill.step<3){
+    dz.dataset.live='1';
+    $('#drillBig').textContent='第 '+(drill.step+1)+' 步';
+    $('#drillLbl').textContent=STEPS[drill.step]+' — 再按一次';
+  }else{
+    dz.removeAttribute('data-live');
+    const total=drill.marks[2];
+    $('#drillBig').textContent=(total/1000).toFixed(2)+' 秒';
+    $('#drillLbl').textContent='從開放到完成';
+    drillLast=drill.marks.slice();
+    store.set('lt_drill',JSON.stringify(drillLast));
+    const slow = drill.marks.map((m,i)=>i===0?m:m-drill.marks[i-1]);
+    const worst = slow.indexOf(Math.max(...slow));
+    $('#drillNote').textContent='最慢的是第 '+(worst+1)+' 步（'+STEPS[worst]+'），花了 '+Math.round(slow[worst])+' ms。'
+      + (drill.marks[0]<0 ? ' 第一步在 T0 之前就按了，實戰會刷到還沒開放的頁面。' : '');
+    drill=null; armed=false;
+  }
+  drillPaint();
+  return true;
+}
+$('#drillzone').addEventListener('click',()=>{ if(!drillHit()){ $('#btnDrill3').click(); } });
+
+/* ---------------- picture-in-picture ---------------- */
+$('#btnPip').addEventListener('click',async()=>{
+  if(!('documentPictureInPicture' in window)){ $('#rsub').textContent='這個瀏覽器不支援浮動視窗（需 Chrome / Edge）'; return; }
+  try{
+    const w = await documentPictureInPicture.requestWindow({width:460,height:300});
+    $$('link[rel="stylesheet"], style').forEach(n=>w.document.head.appendChild(n.cloneNode(true)));
+    const th=document.documentElement.getAttribute('data-theme');
+    if(th) w.document.documentElement.setAttribute('data-theme',th);
+    w.document.body.style.background='var(--bg)';
+    w.document.body.style.margin='0';
+    const holder=document.createElement('div'); holder.id='pipHolder';
+    deck.parentNode.insertBefore(holder,deck);
+    w.document.body.appendChild(deck);
+    w.addEventListener('pagehide',()=>{ holder.parentNode.insertBefore(deck,holder); holder.remove(); });
+  }catch(e){ $('#rsub').textContent='浮動視窗開啟失敗'; }
+});
+
+/* ---------------- init ---------------- */
+recompute();
+if(store.get('lt_rt')){ $('#rtBig').textContent = rtMedian+' ms'; $('#rtLbl').textContent='上次量測結果 · 點一下重測'; }
+paintStats();
+setInterval(()=>{ if(!armed) reanchor(); },30000);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>IsRight 工具箱</title>
+<style>
+:root{
+  --bg:#f6f4ef; --card:#fffdf8; --ink:#1f2328; --muted:#5f6670; --line:#e3ded3;
+  --accent:#2f6f5e; --tag:#eef3ef; --warn:#8a5a14;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#16181b; --card:#1e2125; --ink:#e8e6e1; --muted:#9aa1aa; --line:#2e3238;
+    --accent:#7cc2ab; --tag:#22302b; --warn:#e0b46a; }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;line-height:1.6}
+.wrap{max-width:980px;margin:0 auto;padding:40px 16px 56px}
+header h1{margin:0;font-size:1.9rem;letter-spacing:.02em}
+header p{margin:.4rem 0 0;color:var(--muted)}
+h2{font-size:1rem;color:var(--muted);font-weight:600;margin:2.2rem 0 .8rem;letter-spacing:.05em}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(270px,1fr))}
+.card{display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);
+  border-radius:14px;padding:18px 18px 14px;text-decoration:none;color:inherit;
+  transition:transform .12s ease,border-color .12s ease}
+a.card:hover,a.card:focus-visible{transform:translateY(-2px);border-color:var(--accent);outline:none}
+.card .icon{font-size:1.6rem;line-height:1}
+.card h3{margin:.6rem 0 .25rem;font-size:1.1rem}
+.card p{margin:0;color:var(--muted);font-size:.93rem;flex:1}
+.tags{margin-top:.8rem;display:flex;gap:6px;flex-wrap:wrap}
+.tag{font-size:.75rem;background:var(--tag);color:var(--accent);padding:2px 8px;border-radius:999px}
+.links{margin-top:.7rem;display:flex;gap:14px;font-size:.9rem}
+.links a{color:var(--accent);text-decoration:none;font-weight:600}
+.links a:hover{text-decoration:underline}
+footer{margin-top:3rem;color:var(--muted);font-size:.85rem;border-top:1px solid var(--line);padding-top:1rem}
+.note{color:var(--warn)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>IsRight 工具箱</h1>
+    <p>教學與生活中自己做的小工具，集中在這裡。點卡片就能開啟。</p>
+  </header>
+
+  <h2>教學</h2>
+  <div class="grid">
+    <a class="card" href="question-variant/">
+      <span class="icon">🧮</span>
+      <h3>題目變形工坊</h3>
+      <p>參數化出卷：同一題型自動變出多個數字版本並驗算，也能上傳考卷由 AI 拆成模板。</p>
+      <div class="tags"><span class="tag">出卷</span><span class="tag">數學</span></div>
+    </a>
+    <a class="card" href="roll-call/">
+      <span class="icon">📋</span>
+      <h3>點名表產生器</h3>
+      <p>貼上名單，快速排版成可列印的點名表。</p>
+      <div class="tags"><span class="tag">班級經營</span><span class="tag">列印</span></div>
+    </a>
+    <a class="card" href="igp/">
+      <span class="icon">📝</span>
+      <h3>IGP 產生器</h3>
+      <p>資優生個別化輔導計畫批次產生。所有檔案只在你的瀏覽器裡處理，<strong>學生資料不會上傳</strong>。</p>
+      <div class="tags"><span class="tag">資優行政</span><span class="tag">本機處理</span></div>
+    </a>
+    <div class="card">
+      <span class="icon">🗝️</span>
+      <h3>數位密室逃脫</h3>
+      <p>氣候變遷與失落黃金城。學生端闖關，教師端即時監看各組進度與延長時間。</p>
+      <div class="tags"><span class="tag">資優方案</span><span class="tag">營隊</span></div>
+      <div class="links"><a href="escape-room/">學生端 →</a><a href="escape-room/teacher.html">教師監看台 →</a></div>
+    </div>
+  </div>
+
+  <h2>生活</h2>
+  <div class="grid">
+    <a class="card" href="grab-launcher/">
+      <span class="icon">🚀</span>
+      <h3>搶登記發射台</h3>
+      <p>對時倒數器，在開放登記的那一刻準時出手。</p>
+      <div class="tags"><span class="tag">倒數</span></div>
+    </a>
+    <a class="card" href="key-path/">
+      <span class="icon">⌨️</span>
+      <h3>鍵盤路徑勘查</h3>
+      <p>事先演練表單的鍵盤操作路徑，搶登記時不用找滑鼠。</p>
+      <div class="tags"><span class="tag">搭配發射台</span></div>
+    </a>
+  </div>
+
+  <footer>
+    黃士祐 老師（IsRight）· 金門縣立金城國中<br>
+    <span class="note">本站不存放任何學生資料。</span>
+  </footer>
+</div>
+</body>
+</html>

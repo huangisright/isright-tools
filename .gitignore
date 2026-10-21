@@ -1,0 +1,17 @@
+# 個資與資料檔：一律不進 repo
+*.docx
+*.doc
+*.xlsx
+*.xls
+*.csv
+*.json
+*.jpg
+*.jpeg
+*.png
+*.pdf
+*.gs
+igp-data/
+signin/
+
+# 系統雜檔
+.DS_Store
